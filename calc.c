@@ -24,18 +24,25 @@ void calculate(double first, char *operand, double second) {
 	printf("\e[41m");
 
 	/* Check the operand */
-	if(strcmp(operand, "+") == 0 )
-		printf("%f\n", first + second);
-	else if(strcmp(operand, "-") == 0)
-		printf("%f\n", first - second);
-	else if(strcmp(operand, "*") == 0)
-		printf("%f\n", first * second);
-	else if(strcmp(operand, "/") == 0)
-		printf("%f\n", first / second);
-	else if(strcmp(operand, "m") == 0 || strcmp(operand, "%") == 0)
-		printf("%ld\n", (long int)first % (long int)second);
-	else
-		printf("Unknown operand \'%s\'\n", operand);
+	switch(operand[0]) {
+		case '+': case 'p':
+			printf("%f\n", first + second);
+			break;
+		case '-': case 's':
+			printf("%f\n", first - second);
+			break;
+		case '*': case 't':
+			printf("%f\n", first * second);
+			break;
+		case '/': case 'd':
+			printf("%f\n", first / second);
+			break;
+		case '%': case 'm':
+			printf("%ld\n", (long int)first % (long int)second);
+			break;
+		default:
+			printf("Unknown operand \"%s\"\n", operand);
+	}
 
 	/* Back to normal */
 	printf("\e[0m");
@@ -45,15 +52,25 @@ void calculate(double first, char *operand, double second) {
 void printHelp() {
 	printf("Basic Calculator by Salonia Matteo, made on 25/01/2021\n\
 Compiled on %s at %s.\n\
-Available commands: \e[7mclear\e[0m, \e[7mhelp\e[0m, \e[7mexit\e[0m, \e[7mquit\e[0m.\n\
+Available commands: \e[7mclear\e[0m, \e[7mhelp\e[0m, \e[7mexit\e[0m, \e[7mquit\e[0m, \e[7moperands\e[0m (or \e[7mops\e[0m).\n\
 Examples:\n\
-\e[1;4m[Cmd]\t[Description]\t[Result]\e[0m\n\
-1 + 1\tAddition\tReturns 2\n\
-1 - 1\tSubtraction\tReturns 0\n\
-2 * 2\tMultiplication\tReturns 4\n\
-4 / 2\tDivision\tReturns 2\n\
-4 m 2\tModulus\t\tReturns 0\n\
-4 %% 2\tModulus\t\tReturns 0\n", __DATE__, __TIME__);
+\e[1;4m[Cmd]\t[Alt sign]\t[Description]\t[Result]\e[0m\n\
+1 + 1\t1 p 1\t\tAddition\tReturns 2\n\
+1 - 1\t1 s 1\t\tSubtraction\tReturns 0\n\
+2 * 2\t2 t 2\t\tMultiplication\tReturns 4\n\
+4 / 2\t4 d 2\t\tDivision\tReturns 2\n\
+4 %% 2\t4 m 2\t\tModulus\t\tReturns 0\n", __DATE__, __TIME__);
+}
+
+/* Function that prints operands */
+void printOps() {
+	printf("Available operands:\n\
+\e[1;4m[Symbol]\e[0m Can be written as \e[1;4m[Latin letter]\e[0m\n\
++\t\t\t\tp\n\
+-\t\t\t\ts\n\
+*\t\t\t\tt\n\
+/\t\t\t\td\n\
+%%\t\t\t\tm\n");
 }
 
 /* Function to parse input */
@@ -61,7 +78,7 @@ void parseInput(char *input) {
 
 	/* Use an array to store available commands,
 	 instead of manually checking for each occurrence */
-	char *cmdArray[] = {"clear", "help", "exit", "quit"};
+	char *cmdArray[] = {"clear", "help", "exit", "quit", "operands", "ops"};
 
 	/* If input is not at least 5 characters and is not a command, exit
 	 (the most basic operation, like 1 + 1, requires 5 characters) */
@@ -85,12 +102,17 @@ void parseInput(char *input) {
 		clearScr();
 
 	/* If user wants to quit, exit without errors */
-	else if(strcmp(input, "exit") == 0 || strcmp(input, "quit") == 0)
+	else if(strcmp(input, "exit") == 0 || strcmp(input, "quit") == 0) {
+		printf("Exiting...Goodbye!\n");
 		exit(0);
 
 	/* Check if input is "help" */
-	else if(strcmp(input, "help") == 0)
+	} else if(strcmp(input, "help") == 0)
 		printHelp();
+
+	/* Check if input is "operands" or "ops" */
+	else if(strcmp(input, "operands") == 0 || strcmp(input, "ops") == 0)
+		printOps();
 
 	/* Check if array items exist, otherwise exit */
 	else if(array[0] <= 0 || array[2] <= 0) {
