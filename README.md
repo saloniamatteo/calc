@@ -12,14 +12,13 @@ The available commands are:
 
 Here are a few examples:
 
-| Command | Description    | Result    |
-|---------|----------------|-----------|
-| 1 + 1   | Addition       | Returns 2 |
-| 1 - 1   | Subtraction    | Returns 0 |
-| 2 * 2   | Multiplication | Returns 4 |
-| 4 / 2   | Division       | Returns 2 |
-| 4 m 2   | Modulus        | Returns 0 |
-| 4 % 2   | Modulus        | Returns 0 |
+| Command | Can be written as | Description    | Result    |
+|---------|-------------------|----------------|-----------|
+| 1 + 1   | 1 p 1             | Addition       | Returns 2 |
+| 1 - 1   | 1 s 1             | Subtraction    | Returns 0 |
+| 2 * 2   | 2 t 2             | Multiplication | Returns 4 |
+| 4 / 2   | 4 d 2             | Division       | Returns 2 |
+| 4 % 2   | 4 m 2             | Modulus        | Returns 0 |
 
 ## Why was this written?
 
