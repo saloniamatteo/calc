@@ -45,7 +45,7 @@ void calculate(double first, char *operand, double second) {
 void printHelp() {
 	printf("Basic Calculator by Salonia Matteo, made on 25/01/2021\n\
 Compiled on %s at %s.\n\
-Available commands: \e[7mclear\e[0m, \e[7mexit\e[0m, \e[7mquit\e[0m.\n\
+Available commands: \e[7mclear\e[0m, \e[7mhelp\e[0m, \e[7mexit\e[0m, \e[7mquit\e[0m.\n\
 Examples:\n\
 \e[1;4m[Cmd]\t[Description]\t[Result]\e[0m\n\
 1 + 1\tAddition\tReturns 2\n\
@@ -61,7 +61,7 @@ void parseInput(char *input) {
 
 	/* If input is not at least 5 characters, exit
 	 (the most basic operation, like 1 + 1, requires 5 characters */
-	if(strlen(input) < 5) {
+	if(strlen(input) < 5 && strcmp(input, "help") != 0) {
 		printHelp();
 		exit(1);
 	}
