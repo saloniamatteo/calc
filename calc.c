@@ -59,9 +59,13 @@ Examples:\n\
 /* Function to parse input */
 void parseInput(char *input) {
 
-	/* If input is not at least 5 characters, exit
-	 (the most basic operation, like 1 + 1, requires 5 characters */
-	if(strlen(input) < 5 && strcmp(input, "help") != 0) {
+	/* Use an array to store available commands,
+	 instead of manually checking for each occurrence */
+	char *cmdArray[] = {"clear", "help", "exit", "quit"};
+
+	/* If input is not at least 5 characters and is not a command, exit
+	 (the most basic operation, like 1 + 1, requires 5 characters) */
+	if(strlen(input) < 5 && strstr(*cmdArray, input) != 0) {
 		printHelp();
 		exit(1);
 	}
