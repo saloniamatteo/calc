@@ -146,6 +146,12 @@ int main() {
 		/* Ask user input */
 		char *input = readline("\e[1;4mcalc>\e[0m ");
 
+		/* Handle CTRL+D */
+		if(input == NULL) {
+			printf("Detected CTRL+D, exiting...Goodbye!\n");
+			return 0;
+		}
+
 		/* Parse the input, and identify what to do */
 		parseInput(input);
 	}
