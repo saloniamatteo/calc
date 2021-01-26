@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -136,6 +137,22 @@ void parseInput(char *input) {
 	}
 }
 
+/* This function will handle signals */
+void sigHandler(int sigNum) {
+
+	/* Inform user what signal was sent */
+	char *sigName;
+	if(sigNum == 2)
+		sigName = "(CTRL+C)";
+	else if(sigNum == 11)
+		sigName = "(CTRL+D)";
+	else
+		sigName = "";
+
+	printf("Detected Signal %d %s, exiting...Goodbye!\n", sigNum, sigName);
+	exit(0);
+}
+
 int main() {
 
 	/* Print program info */
@@ -143,14 +160,19 @@ int main() {
 
 	/* Infinite loop */
 	for(;;) {
+
+		/* Handle signals */
+		signal(SIGABRT, sigHandler);
+		signal(SIGFPE, sigHandler);
+		signal(SIGILL, sigHandler);
+		/* CTRL+C */
+		signal(SIGINT, sigHandler);
+		/* CTRL+D */
+		signal(SIGSEGV, sigHandler);
+		signal(SIGTERM, sigHandler);
+
 		/* Ask user input */
 		char *input = readline("\e[1;4mcalc>\e[0m ");
-
-		/* Handle CTRL+D */
-		if(input == NULL) {
-			printf("Detected CTRL+D, exiting...Goodbye!\n");
-			return 0;
-		}
 
 		/* Parse the input, and identify what to do */
 		parseInput(input);
