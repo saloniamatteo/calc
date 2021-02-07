@@ -17,7 +17,7 @@
 	#warning "Please use optimizations for performance, like '-O3', instead of using '-Os'!"
 	#define OPTS "with optimizations for size"
 /* We know it's now compiled with optimizations for performance */
-#else __OPTIMIZE__ == 1
+#else 
 	#define OPTS "with optimizations for performance"
 #endif
 
