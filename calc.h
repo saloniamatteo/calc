@@ -55,7 +55,7 @@ void calculate(double first, char *operand, double second) {
 /* Function that prints help */
 void printHelp() {
 	printf("Basic Calculator by Salonia Matteo, made on 25/01/2021\n\
-Compiled on %s at %s %s using compiler %s.\n\
+Compiled on %s at %s %s, using compiler %s.\n\
 Available commands: \e[7mclear\e[0m, \e[7mhelp\e[0m, \e[7mexit\e[0m, \e[7mquit\e[0m, \e[7moperands\e[0m (or \e[7mops\e[0m).\n\
 Examples:\n\
 \e[1;4m[Cmd]\t[Alt sign]\t[Description]\t[Result]\e[0m\n\

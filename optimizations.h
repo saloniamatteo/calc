@@ -8,7 +8,7 @@
 #ifndef _OPTS_H
 #define _OPTS_H
 
-/* Check if compiled with optimizations */
+/* No optimizations are being used */
 #if __OPTIMIZE__ == 0
 	#warning "Please use optimizations for performance, like '-O3'!"
 	#define OPTS "without optimizations"
@@ -17,7 +17,7 @@
 	#warning "Please use optimizations for performance, like '-O3', instead of using '-Os'!"
 	#define OPTS "with optimizations for size"
 /* We know it's now compiled with optimizations for performance */
-#else
+#else __OPTIMIZE__ == 1
 	#define OPTS "with optimizations for performance"
 #endif
 
