@@ -8,18 +8,15 @@ ARCH = native
 TUNE = native
 # CFLAGS: additional compiler flags
 CFLAGS = -Wall
+# LINKER: choose a linker to use; can be bfd, gold, lld
+# comment to use the default linker, uncomment to use a custom linker
+#LINKER = -fuse-ld=gold
 
-output: calc.o optimizations.o compiler.o
-	$(CC) calc.o -o calc $(CFLAGS) $(LIBS) $(OPTS) -march=$(ARCH) -mtune=$(TUNE)
+output: calc.o 
+	$(CC) calc.o -o calc $(CFLAGS) $(LIBS) $(OPTS) $(LINKER) -march=$(ARCH) -mtune=$(TUNE)
 
-calc.o: calc.c calc.h
-	$(CC) -c calc.c $(CFLAGS) $(LIBS) $(OPTS) -march=$(ARCH) -mtune=$(TUNE)
-
-optimizations.o: optimizations.h
-	$(CC) -c optimizations.h $(CFLAGS) $(LIBS) $(OPTS) -march=$(ARCH) -mtune=$(TUNE)
-
-compiler.o: compiler.h
-	$(CC) -c compiler.h $(CFLAGS) $(LIBS) $(OPTS) -march=$(ARCH) -mtune=$(TUNE)
+calc.o: calc.c calc.h optimizations.h compiler.h
+	$(CC) -c calc.c $(CFLAGS) $(LIBS) $(OPTS) $(LINKER) -march=$(ARCH) -mtune=$(TUNE)
 
 clean:
-	rm -f *.o *.gch calc
+	rm -f *.o calc
