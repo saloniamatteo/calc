@@ -1,7 +1,8 @@
 /* See LICENSE file for copyright and license details.
  *
  * This Library checks if GCC, MSVC, or CLang is being used to
- * compile the program.
+ * compile the program, defining the "CC" variable at
+ * pre-processing time
  *
  * Made by Salonia Matteo <saloniamatteo@pm.me>
  * Part of SMCLib.

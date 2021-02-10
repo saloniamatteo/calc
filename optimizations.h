@@ -1,7 +1,8 @@
 /* See LICENSE file for copyright and license details.
  *
  * This Library checks if optimizations, such as -O1, -O2, -O3,
- * or -Ofast are being used.
+ * or -Ofast are being used, defining "OPTS" at pre-processing
+ * time.
  *
  * Made by Salonia Matteo <saloniamatteo@pm.me>
  * Part of SMCLib.
