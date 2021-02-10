@@ -1,3 +1,13 @@
+/* See LICENSE file for copyright and license details.
+ *
+ * calc is a Simple Calculator written in C by Salonia Matteo. It
+ * takes input from stdin using libreadline, and prints the
+ * result from the requested operation to stdout.
+ *
+ * Made by Salonia Matteo <saloniamatteo@pm.me>
+ *
+ */
+
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,15 +18,18 @@
 #include "optimizations.h"
 #include "compiler.h"
 
-/* Basic Calculator by Salonia Matteo */
+/* Use POSIX.1-2008 */
+#define _POSIX_C_SOURCE 200809L
 
-int main() {
+int
+main(int argc, char *argv[])
+{
 
 	/* Print program info */
 	printHelp();
 
 	/* Infinite loop */
-	for(;;) {
+	for (;;) {
 
 		/* Handle signals */
 		signal(SIGABRT, sigHandler);

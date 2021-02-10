@@ -11,12 +11,14 @@ CFLAGS = -Wall
 # LINKER: choose a linker to use; can be bfd, gold, lld
 # comment to use the default linker, uncomment to use a custom linker
 #LINKER = -fuse-ld=gold
+# CSTD: which C revision to use
+CSTD = c99
 
 output: calc.o 
-	$(CC) calc.o -o calc $(CFLAGS) $(LIBS) $(OPTS) $(LINKER) -march=$(ARCH) -mtune=$(TUNE)
+	$(CC) calc.o -o calc $(CFLAGS) $(LIBS) $(OPTS) $(LINKER) -march=$(ARCH) -mtune=$(TUNE) -std=$(CSTD)
 
 calc.o: calc.c calc.h optimizations.h compiler.h
-	$(CC) -c calc.c $(CFLAGS) $(LIBS) $(OPTS) $(LINKER) -march=$(ARCH) -mtune=$(TUNE)
+	$(CC) -c calc.c $(CFLAGS) $(LIBS) $(OPTS) $(LINKER) -march=$(ARCH) -mtune=$(TUNE) -std=$(CSTD)
 
 clean:
 	rm -f *.o calc
