@@ -15,10 +15,12 @@ CFLAGS = -Wall
 CSTD = c99
 
 output: calc.o 
-	$(CC) calc.o -o calc $(CFLAGS) $(LIBS) $(OPTS) $(LINKER) -march=$(ARCH) -mtune=$(TUNE) -std=$(CSTD)
+	@$(CC) calc.o -o calc $(CFLAGS) $(LIBS) $(OPTS) $(LINKER) -march=$(ARCH) -mtune=$(TUNE) -std=$(CSTD)
+	@echo "CC $<"
 
 calc.o: calc.c calc.h optimizations.h compiler.h
-	$(CC) -c calc.c $(CFLAGS) $(LIBS) $(OPTS) $(LINKER) -march=$(ARCH) -mtune=$(TUNE) -std=$(CSTD)
+	@$(CC) -c calc.c $(CFLAGS) $(LIBS) $(OPTS) $(LINKER) -march=$(ARCH) -mtune=$(TUNE) -std=$(CSTD)
+	@echo "CC $<"
 
 clean:
 	rm -f *.o calc
