@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
+#include <getopt.h>
 #include <readline/readline.h>
 
 #include "optimizations.h"
@@ -36,9 +37,33 @@ void sigHandler(int sigNum);
 /* Define "long unsigned int" as uint64_t */
 typedef long unsigned int uint64_t;
 
+/* Print colored output? (Default: yes (1)) */
+int usecolor = 1;
+
 int
-main(void)
+main(int argc, char **argv)
 {
+	int optind = 0;
+
+	/* Struct containing program options/flags */
+	static struct option longopts[] = {
+		{"no-color", no_argument, 0, 'n'}
+	};
+
+	/* Check if argument has been passed */
+	while ((optind = getopt_long(argc, argv, "n", longopts, &optind)) != 1) {
+		switch (optind) {
+		case 'n':
+			/* Disable colored output */
+			usecolor = 0;
+			printf("[Disabled colored output]\n");
+			break;
+		}
+
+		if (optind <= 0)
+			break;
+	}
+
 	/* Print program info */
 	printHelp();
 
@@ -70,8 +95,9 @@ main(void)
 void
 calculate(double first, char *operand, double second)
 {
-	/* Make the output bold */
-	printf("\e[1m");
+	/* Make the output bold, if we are using colors */
+	if (usecolor != 0)
+		printf("\e[1m");
 
 	/* Check the operand */
 	switch (operand[0]) {
@@ -94,8 +120,9 @@ calculate(double first, char *operand, double second)
 		printf("Unknown operand \"%s\"\n", operand);
 	}
 
-	/* Back to normal */
-	printf("\e[0m");
+	/* Back to normal (if using colors) */
+	if (usecolor != 0)
+		printf("\e[0m");
 }
 
 /* Clear the screen */
@@ -215,7 +242,10 @@ parseInput(char *input)
 			calculate(first, operand, second);
 		} else {
 			/* Operand does not exist, print only the first number (10 decimal places) */
-			printf("\e[1m%.10f\e[0m\n", first);
+			if (usecolor != 0)
+				printf("\e[1m%.10f\e[0m\n", first);
+			else
+				printf("%.10f\n", first);
 		}
 	}
 }
@@ -266,6 +296,6 @@ sigHandler(int sigNum)
 		sigName = "";
 
 	/* Print detected signal and exit gracefully */
-	printf("Detected Signal %d %s!\n", sigNum, sigName);
+	printf("[Detected Signal %d %s]\n", sigNum, sigName);
 	exit(0);
 }
