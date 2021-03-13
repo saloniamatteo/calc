@@ -12,23 +12,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <readline/readline.h>
 
-#include "calc.h"
 #include "optimizations.h"
 #include "compiler.h"
 
 /* Use POSIX.1-2008 */
 #define _POSIX_C_SOURCE 200809L
 
-int
-main(int argc, char *argv[])
-{
+/* When was this last modified */
+#define _CALC_LAST_MOD_DATE "13/03/2021"
 
+/* Function prototypes */
+void calculate(double first, char *operand, double second);
+void clearScr(void);
+void parseInput(char *input);
+void printHelp(void);
+void printOps(void);
+void printSpecVals(void);
+void sigHandler(int sigNum);
+
+/* Define "long unsigned int" as uint64_t */
+typedef long unsigned int uint64_t;
+
+int
+main(void)
+{
 	/* Print program info */
 	printHelp();
 
-	/* Infinite loop */
+	/* Run indefinitely */
 	for (;;) {
 
 		/* Handle signals */
@@ -44,10 +58,214 @@ main(int argc, char *argv[])
 		/* Ask user input */
 		char *input = readline("\e[1;4mcalc>\e[0m ");
 
-		/* Parse the input, and identify what to do */
+		/* Parse the input */
 		parseInput(input);
 	}
 
-	/* If this point is somehow reached, exit without errors */
+	/* If this point is somehow reached, exit gracefully */
 	return 0;
+}
+
+/* Print a result, based on the parsed string */
+void
+calculate(double first, char *operand, double second)
+{
+	/* Make the output bold */
+	printf("\e[1m");
+
+	/* Check the operand */
+	switch (operand[0]) {
+	case '+': case 'p':
+		printf("%.10f\n", first + second);
+		break;
+	case '-': case 's':
+		printf("%.10f\n", first - second);
+		break;
+	case '*': case 't':
+		printf("%.10f\n", first * second);
+		break;
+	case '/': case 'd':
+		printf("%.10f\n", first / second);
+		break;
+	case '%': case 'm':
+		printf("%ld\n", (long int)first % (long int)second);
+		break;
+	default:
+		printf("Unknown operand \"%s\"\n", operand);
+	}
+
+	/* Back to normal */
+	printf("\e[0m");
+}
+
+/* Clear the screen */
+void
+clearScr(void)
+{
+	/* Run "clear" if the user is using Unix/a Unix-Like OS */
+	#ifdef __unix__
+	system("clear");
+
+	/* Run "cls" if the user is using windows */
+	#elif defined _MSC_VER
+	system("cls");
+	#endif
+}
+
+/* Print this program's help */
+void
+printHelp(void)
+{
+	printf("Basic Calculator by Salonia Matteo, made on 25/01/2021, last modified %s\n\
+Compiled on %s at %s %s, using compiler %s.\n\
+Available commands: \e[7mclear\e[0m, \e[7mhelp\e[0m, \e[7mexit\e[0m, \e[7mquit\e[0m, \e[7moperands\e[0m (or \e[7mops\e[0m), \e[7mspecvals\e[0m.\n\
+Examples:\n\
+\e[1;4m[Cmd]\t[Alt sign]\t[Description]\t[Result]\e[0m\n\
+1 + 1\t1 p 1\t\tAddition\tReturns 2\n\
+1 - 1\t1 s 1\t\tSubtraction\tReturns 0\n\
+2 * 2\t2 t 2\t\tMultiplication\tReturns 4\n\
+4 / 2\t4 d 2\t\tDivision\tReturns 2\n\
+4 %% 2\t4 m 2\t\tModulus\t\tReturns 0\n",
+_CALC_LAST_MOD_DATE,
+__DATE__, __TIME__,
+OPTS, CC);
+}
+
+/* Parse user input */
+void
+parseInput(char *input)
+{
+	/* Clear the screen */
+	if (!strcasecmp(input, "clear"))
+		clearScr();
+
+	/* Exit without errors */
+	else if (!strcasecmp(input, "exit") || !strcasecmp(input, "quit"))
+		exit(0);
+
+	/* Print this program's help */
+	else if (!strcasecmp(input, "help"))
+		printHelp();
+	
+	/* Print available operands */
+	else if (!strcasecmp(input, "operands") || !strcasecmp(input, "ops"))
+		printOps();
+
+	/* Print special values */
+	else if (!strcasecmp(input, "specvals"))
+		printSpecVals();
+
+	else {
+		/* TODO: use a better string parsing method */
+		int i = 0;
+		char *array[5], *token = strtok(input, " ");
+		double first = 0, second = 0;
+	
+		/* Save items to array */
+		while (token != NULL) {
+			array[i++] = token;
+			token = strtok(NULL, " ");
+		}
+		/* End TODO */
+
+		/* Assign array items to variables */
+		/* Special values: pi, pi2, pi4, 1pi, 2pi, pisq, e */
+		if (!strcasecmp(array[0], "pi"))
+			first = 3.1415926535;
+		else if (!strcasecmp(array[0], "pi2"))
+			first = 1.5707963267;
+		else if (!strcasecmp(array[0], "pi4"))
+			first = 0.7853981633;
+		else if (!strcasecmp(array[0], "1pi"))
+			first = 0.3183098861;
+		else if (!strcasecmp(array[0], "2pi"))
+			first = 0.6366197723;
+		else if (!strcasecmp(array[0], "pisq"))
+			first = 9.8696044010;
+		else if (!strcasecmp(array[0], "e"))
+			first = 2.7182818284;
+		else
+			first = atof(array[0]);
+
+		if (!strcasecmp(array[2], "pi"))
+			second = 3.1415926535;
+		else if (!strcasecmp(array[2], "pi2"))
+			second = 1.5707963267;
+		else if (!strcasecmp(array[2], "pi4"))
+			second = 0.7853981633;
+		else if (!strcasecmp(array[2], "1pi"))
+			second = 0.3183098861;
+		else if (!strcasecmp(array[2], "2pi"))
+			second = 0.6366197723;
+		else if (!strcasecmp(array[2], "pisq"))
+			second = 9.8696044010;
+		else if (!strcasecmp(array[2], "e"))
+			second = 2.7182818284;
+		else
+			second = atof(array[2]);
+
+		/* Store operand in a single character */
+		char operand[1];
+		/* Convert operand value to long unsigned int */
+		uint64_t opnum = (uint64_t)array[1];
+
+		/* Check if operand exists, using a magic number (this somehow works) */
+		if (opnum < 0x1400000000000) {
+			strcpy(operand, array[1]);
+			calculate(first, operand, second);
+		} else {
+			/* Operand does not exist, print only the first number (10 decimal places) */
+			printf("\e[1m%.10f\e[0m\n", first);
+		}
+	}
+}
+
+/* Print available operands and their short notation */
+void
+printOps(void)
+{
+	printf("Available operands:\n\
+\e[1;4m[Symbol]\e[0m Can be written as \e[1;4m[Latin letter]\e[0m\n\
++\t\t\t\tp\n\
+-\t\t\t\ts\n\
+*\t\t\t\tt\n\
+/\t\t\t\td\n\
+%%\t\t\t\tm\n");
+}
+
+/* Print special values */
+void
+printSpecVals(void)
+{
+	printf("Special values: you can type these words to automatically get their value.\n\
+\e[1;4mNOTE: \e[0mThese are case insensitive, so you can type them in all lowercase, uppercase, etc.\n\
+\e[1;4m[Symbol]\e[0m\t\e[1;4m[Description]\e[0m\n\
+pi\t\tThe value of Pi\n\
+pi2\t\tPi / 2\n\
+pi4\t\tPi / 4\n\
+1pi\t\t1 / Pi\n\
+2pi\t\t2 / Pi\n\
+pisq\t\tPi * Pi\n\
+e\t\tThe value of e\n");
+}
+
+/* Handle signals */
+void
+sigHandler(int sigNum)
+{
+	/* Inform user what signal was sent */
+	char *sigName;
+
+	/* Check if signal is CTRL+C */
+	if (sigNum == 2)
+		sigName = "(CTRL+C)";
+	/* Check if signal is CTRL+D */
+	else if (sigNum == 11)
+		sigName = "(CTRL+D)";
+	else
+		sigName = "";
+
+	/* Print detected signal and exit gracefully */
+	printf("Detected Signal %d %s!\n", sigNum, sigName);
+	exit(0);
 }

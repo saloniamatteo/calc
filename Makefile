@@ -14,13 +14,17 @@ CFLAGS = -Wall
 # CSTD: which C revision to use
 CSTD = c99
 
-output: calc.o 
-	@$(CC) calc.o -o calc $(CFLAGS) $(LIBS) $(OPTS) $(LINKER) -march=$(ARCH) -mtune=$(TUNE) -std=$(CSTD)
+all: calc
+
+calc: calc.o
+	@$(CC) $^ -o $@ $(CFLAGS) $(LIBS) $(OPTS) $(LINKER) -march=$(ARCH) -mtune=$(TUNE) -std=$(CSTD)
 	@echo "CC $<"
 
-calc.o: calc.c calc.h optimizations.h compiler.h
-	@$(CC) -c calc.c $(CFLAGS) $(LIBS) $(OPTS) $(LINKER) -march=$(ARCH) -mtune=$(TUNE) -std=$(CSTD)
+calc.o: calc.c optimizations.h compiler.h
+	@$(CC) -c calc.c -o $@ $(CFLAGS) $(LIBS) $(OPTS) $(LINKER) -march=$(ARCH) -mtune=$(TUNE) -std=$(CSTD)
 	@echo "CC $<"
 
 clean:
 	rm -f *.o calc
+
+.PHONY = all calc clean
