@@ -7,24 +7,34 @@ Initially written on January 25, 2021.
 ## Available commands
 Currently, `calc` supports the following commands:
 
-| Command  | Description                             |
-|----------|-----------------------------------------|
-| clear    | Clear the screen                        |
-| color    | Enable colored output                   |
-| exit     | Close this program                      |
-| help     | Print help/usage                        |
-| operands | Print list of operands                  |
-| ops      | Print list of operands                  |
-| quit     | Close this program                      |
-| specvals | Print [Special Values](#Special-Values) |
+| Command    | Description                             |
+|------------|-----------------------------------------|
+| clear      | Clear the screen                        |
+| color      | Enable colored output                   |
+| examples   | Enable examples in help section         |
+| exit       | Close this program                      |
+| flags      | Enable flags in help section            |
+| help       | Print help/usage                        |
+| nocolor    | Disable colored output
+| noexamples | Disable examples in help section        |
+| noflags    | Disable flags in help section           |
+| operands   | Print list of operands                  |
+| ops        | Print list of operands                  |
+| quit       | Close this program                      |
+| specvals   | Print [Special Values](#Special-Values) |
 
 ## Flags
 Currently, `calc` supports the following command-line flags:
 
-| Flag | Description            |
-|------|------------------------|
-| `-h` | Print help and exit    |
-| `-n` | Disable colored output |
+| Flag | Description                      |
+|------|----------------------------------|
+| `-e` | Disable examples in help section |
+| `-f` | Disable flags in help section    |
+| `-h` | Print help and exit              |
+| `-m` | Disable program compilation info |
+| `-n` | Disable colored output           |
+
+NOTE: Flag order matters! ([efmnh])
 
 ## Example operations
 

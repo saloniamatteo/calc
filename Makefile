@@ -14,17 +14,27 @@ CFLAGS = -Wall
 # CSTD: which C revision to use
 CSTD = -std=c99
 
-all: calc
+rel: release
+
+# Disables debugging
+release: calc-rel.o
+	@$(CC) $^ -o calc -DDEBUG=0 $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(CSTD) $(LDFLAGS)
+	@echo "CC $<"
+
+# Disables debugging
+calc-rel.o: calc.c color.h platform.h optimizations.h compiler.h
+	@$(CC) -c $< -o $@ -DDEBUG=0 $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(LDFLAGS)
+	@echo "CC $<"
 
 calc: calc.o
 	@$(CC) $^ -o $@ $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(CSTD) $(LDFLAGS)
 	@echo "CC $<"
 
-calc.o: calc.c platform.h optimizations.h compiler.h
+calc.o: calc.c color.h platform.h optimizations.h compiler.h
 	@$(CC) -c $< -o $@ $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(LDFLAGS)
 	@echo "CC $<"
 
 clean:
 	rm -f *.o calc
 
-.PHONY = all calc clean
+.PHONY = calc clean rel release

@@ -17,6 +17,7 @@
 #include <getopt.h>
 #include <readline/readline.h>
 
+#include "color.h"
 #include "platform.h"
 #include "optimizations.h"
 #include "compiler.h"
@@ -30,16 +31,32 @@
 /* Magic number that lets us check if the operator number is valid */
 /* NOTE: if Calc returns the first number, even when the operator and
  * the second number were entered, try to recompile (rare issue on ARM) */
+/* Also, define ARCHNUM (1 is x86, 2 is ARM) */
 #ifdef ARCH
 	#ifdef ARCH_x86
 	#define __CALC_OPVAL 0x1400000000000
+	#define ARCHNUM 1
 	#elif defined ARCH_ARM
 	#define __CALC_OPVAL 0x7500000000
+	#define ARCHNUM 2
 	#endif
 #else
-	#warning "Your architecture is unknown!"
-	#warning "Using default x86 value..."
+	#warning "Architecture is unknown!"
+	#warning "Using default x86 value for __CALC_OPVAL (0x1400000000000)"
 	#define __CALC_OPVAL 0x1400000000000
+#endif
+
+/* Instead of constantly writing color(string, 1, rvideo),
+ * only write color_rvid(string) */
+#define color_rvid(str) color(str, 1, rvideo)
+
+/* Instead of constantly writing color(string, 2, bold, underline),
+ * only write color_bu(string) */
+#define color_bu(str) color(str, 2, bold, underline)
+
+/* Allow debug? (Default: yes (1), set to 0 to disable) */
+#ifndef DEBUG
+#define DEBUG 1
 #endif
 
 /* Function prototypes */
@@ -54,38 +71,67 @@ void sigHandler(int sigNum);
 /* Define "long unsigned int" as uint64_t */
 typedef long unsigned int uint64_t;
 
-/* Print colored output? (Default: yes (1)) */
-int usecolor = 1;
+/* Define "short unsigned int" as uint8_t */
+typedef short unsigned int uint8_t;
+
+/* Print colored output? (Default: yes (1); no (0)) */
+uint8_t usecolor = 1;
+
+/* Print compilation info? (Default: yes (1); no (0)) */
+uint8_t showcmp = 1;
+
+/* Print program flags? (Default: yes (1); no (0)) */
+uint8_t showflags = 1;
+
+/* Print examples? (Default: yes (1); no (0)) */
+uint8_t showsamp = 1;
 
 int
 main(int argc, char **argv)
 {
-	int optind = 0;
-
 	/* Struct containing program options/flags */
 	static struct option longopts[] = {
-		{"help", no_argument, 0, 'h'},
-		{"no-color", no_argument, 0, 'n'}
+		{"no-examples", no_argument, 0, 'e'},
+		{"no-flags", no_argument, 0, 'f'},
+		{"no-cmp", no_argument, 0, 'm'},
+		{"no-color", no_argument, 0, 'n'},
+		{"help", no_argument, 0, 'h'}
 	};
 
+	int optind = 0;
+
 	/* Check if flags have been passed */
-	while ((optind = getopt_long(argc, argv, ":hn", longopts, &optind)) != 1) {
+	while ((optind = getopt_long(argc, argv, ":efmnh", longopts, &optind)) != 1) {
 		switch (optind) {
 
-		/* Unknown option */
-		case '?':
-			fprintf(stderr, "[Option \"%c\" is unknown, ignoring]\n", optopt);
+		/* Don't show examples when printing help */
+		case 'e':
+			showsamp = 0;
+			fprintf(stderr, "[Disabled examples]\n");
+			break;
 
-		/* Print help and exit */
-		case 'h':
-			printHelp();
-			return 0;
+		/* Don't show flags when printing help */
+		case 'f':
+			showflags = 0;
+			fprintf(stderr, "[Disabled flags]\n");
+			break;
+
+		/* Don't show program compilation info */
+		case 'm':
+			showcmp = 0;
+			fprintf(stderr, "[Disabled compilation info]\n");
 			break;
 
 		/* Disable colored output */
 		case 'n':
 			usecolor = 0;
 			fprintf(stderr, "[Disabled colored output]\n");
+			break;
+
+		/* Print help and exit */
+		case '?': case 'h':
+			printHelp();
+			return 0;
 			break;
 		}
 
@@ -114,6 +160,10 @@ main(int argc, char **argv)
 
 		/* Parse the input */
 		parseInput(input);
+
+		/* Set variables to 0 */
+		explicit_bzero(input, sizeof(*input));
+		explicit_bzero(&optind, sizeof(optind));
 	}
 
 	/* If this point is somehow reached, exit gracefully */
@@ -168,28 +218,6 @@ clearScr(void)
 	#endif
 }
 
-/* Print this program's help */
-void
-printHelp(void)
-{
-	printf("Basic Calculator by Salonia Matteo, made on 25/01/2021, last modified %s\n\
-Compiled on %s at %s %s, using compiler %s, targeting platform %s.\n\
-Available commands:\
-\e[7mclear\e[0m, \e[7mhelp\e[0m, \e[7mexit\e[0m, \e[7mquit\e[0m, \
-\e[7moperands\e[0m (or \e[7mops\e[0m), \e[7mspecvals\e[0m, \
-\e[7mnocolor\e[0m, \e[7mcolor\e[0m.\n\
-Examples:\n\
-\e[1;4m[Cmd]\t[Alt sign]\t[Description]\t[Result]\e[0m\n\
-1 + 1\t1 p 1\t\tAddition\tReturns 2\n\
-1 - 1\t1 s 1\t\tSubtraction\tReturns 0\n\
-2 * 2\t2 t 2\t\tMultiplication\tReturns 4\n\
-4 / 2\t4 d 2\t\tDivision\tReturns 2\n\
-4 %% 2\t4 m 2\t\tModulus\t\tReturns 0\n",
-_CALC_LAST_MOD_DATE,
-__DATE__, __TIME__,
-OPTS, CC, ARCH);
-}
-
 /* Parse user input */
 void
 parseInput(char *input)
@@ -203,12 +231,49 @@ parseInput(char *input)
 		usecolor = 1;
 		fprintf(stderr, "[Enabled color]\n");
 
+	#if DEBUG != 0
+	/* Debug info (hidden) */
+	} else if (!strcasecmp(input, "debug")) {
+		char archNumStr[10];
+
+		if (ARCHNUM == 1)
+			strcpy(archNumStr, "x86");
+		else if (ARCHNUM == 2)
+			strcpy(archNumStr, "ARM");
+		else
+			strcpy(archNumStr, "Unknown");
+
+		/* Print architecture, compiler, date & time info */
+		fprintf(stderr, "Architecture, Compiler, Date & Time.\n");
+		fprintf(stderr, "ARCH: %s\nARCHNUM: %d (%s)\nCC: %s %s\nDATE: %s\nTIME: %s\n\n", ARCH, ARCHNUM, archNumStr, CC, OPTS, __DATE__, __TIME__);
+
+		/* Print the size of data types */
+		fprintf(stderr, "Data Type Size.\n");
+		fprintf(stderr, "(char) size: %ld, (char *) size: %ld\n(int) size: %ld, (int *) size: %ld\n\n",
+				sizeof(char), sizeof(char *), sizeof(int), sizeof(int *));
+
+		/* Print POSIX C source, last modify date, opval */
+		fprintf(stderr, "Miscellaneous.\n");
+		fprintf(stderr, "POSIX C Source: %ld\nLast Modify Date: %s\nOpVal: 0x%lX (%lu)\n",
+				_POSIX_C_SOURCE, _CALC_LAST_MOD_DATE, __CALC_OPVAL, __CALC_OPVAL);
+	#endif
+
 	/* Exit without errors */
 	} else if (!strcasecmp(input, "exit") || !strcasecmp(input, "quit"))
 		exit(0);
 
+	/* Enable examples in help section */
+	else if (!strcasecmp(input, "examples")) {
+		showsamp = 1;
+		fprintf(stderr, "[Enabled examples]\n");
+
+	/* Show flags */
+	} else if (!strcasecmp(input, "flags")) {
+		showflags = 1;
+		fprintf(stderr, "[Enabled flags]\n");
+
 	/* Print this program's help */
-	else if (!strcasecmp(input, "help"))
+	} else if (!strcasecmp(input, "help"))
 		printHelp();
 	
 	/* Print available operands */
@@ -219,6 +284,16 @@ parseInput(char *input)
 	else if (!strcasecmp(input, "nocolor")) {
 		usecolor = 0;
 		fprintf(stderr, "[Disabled color]\n");
+
+	/* Don't show examples */
+	} else if (!strcasecmp(input, "noexamples")) {
+		showsamp = 0;
+		fprintf(stderr, "[Disabled examples]\n");
+
+	/* Don't show flags */
+	} else if (!strcasecmp(input, "noflags")) {
+		showflags = 0;
+		fprintf(stderr, "[Disabled flags]\n");
 
 	/* Print special values */
 	} else if (!strcasecmp(input, "specvals"))
@@ -293,7 +368,59 @@ parseInput(char *input)
 			else
 				printf("%.10f\n", first);
 		}
+
+	/* Set variables to 0 */
+	explicit_bzero(array, sizeof(*array));
+	explicit_bzero(&i, sizeof(i));
+	explicit_bzero(&first, sizeof(first));
+	explicit_bzero(operand, sizeof(*operand));
+	explicit_bzero(&opnum, sizeof(opnum));
+	explicit_bzero(&second, sizeof(second));
 	}
+}
+
+/* Print this program's help */
+void
+printHelp(void)
+{
+	printf("Basic Calculator by Salonia Matteo, made on 25/01/2021, last modified %s\n", _CALC_LAST_MOD_DATE);
+
+	/* Show program compilation info */
+	if (showcmp != 0)
+		printf("Compiled on %s at %s %s, using compiler %s, targeting platform %s.\n", __DATE__, __TIME__, OPTS, CC, ARCH);
+
+	/* Show flags */
+	if (showflags != 0)
+		printf("Flag order: [efmnh]\nFlags:\n\
+%s \t| %s \tDon't show examples\n\
+%s \t| %s \tDon't show these flags\n\
+%s \t\t| %s \tShow this help\n\
+%s \t| %s \tDon't show program compilation info\n\
+%s \t| %s \tDon't color the output\n",
+color_rvid("--no-examples"), color_rvid("-e"),
+color_rvid("--no-flags"), color_rvid("-f"),
+color_rvid("--help"), color_rvid("-h"),
+color_rvid("--no-cmp"), color_rvid("-m"),
+color_rvid("--no-color"), color_rvid("-n"));
+
+	/* No option to disable these available commands,
+	 * otherwhise how would this help make any sense? */
+	printf("\nAvailable commands: %s, %s, %s, %s, %s, %s, %s, %s, %s, %s (or %s), %s, %s.\n",
+color_rvid("clear"), color_rvid("color"), color_rvid("examples"),
+color_rvid("exit"), color_rvid("flags"), color_rvid("help"),
+color_rvid("nocolor"), color_rvid("noexamples"), color_rvid("noflags"),
+color_rvid("operands"), color_rvid("ops"), color_rvid("quit"), color_rvid("specvals"));
+
+	/* Show examples */
+	if (showsamp != 0)
+		printf("Examples:\n\
+%s\n\
+1 + 1\t1 p 1\t\tAddition\tReturns 2\n\
+1 - 1\t1 s 1\t\tSubtraction\tReturns 0\n\
+2 * 2\t2 t 2\t\tMultiplication\tReturns 4\n\
+4 / 2\t4 d 2\t\tDivision\tReturns 2\n\
+4 %% 2\t4 m 2\t\tModulus\t\tReturns 0\n",
+color_bu("[Cmd]\t[Alt sign]\t[Description]\t[Result]"));
 }
 
 /* Print available operands and their short notation */
@@ -301,12 +428,13 @@ void
 printOps(void)
 {
 	printf("Available operands:\n\
-\e[1;4m[Symbol]\e[0m Can be written as \e[1;4m[Latin letter]\e[0m\n\
+%s Can be written as %s\n\
 +\t\t\t\tp\n\
 -\t\t\t\ts\n\
 *\t\t\t\tt\n\
 /\t\t\t\td\n\
-%%\t\t\t\tm\n");
+%%\t\t\t\tm\n",
+color_bu("[Symbol]"), color_bu("[Latin letter]"));
 }
 
 /* Print special values */
@@ -314,15 +442,16 @@ void
 printSpecVals(void)
 {
 	printf("Special values: you can type these words to automatically get their value.\n\
-\e[1;4mNOTE: \e[0mThese are case insensitive, so you can type them in all lowercase, uppercase, etc.\n\
-\e[1;4m[Symbol]\e[0m\t\e[1;4m[Description]\e[0m\n\
+%s These are case insensitive, so you can type them in all lowercase, uppercase, etc.\n\
+%s\t%s\n\
 pi\t\tThe value of Pi\n\
 pi2\t\tPi / 2\n\
 pi4\t\tPi / 4\n\
 1pi\t\t1 / Pi\n\
 2pi\t\t2 / Pi\n\
 pisq\t\tPi * Pi\n\
-e\t\tThe value of e\n");
+e\t\tThe value of e\n",
+color_bu("NOTE:"), color_bu("[Symbol]"), color_bu("[Description]"));
 }
 
 /* Handle signals */
@@ -343,5 +472,13 @@ sigHandler(int sigNum)
 
 	/* Print detected signal and exit gracefully */
 	fprintf(stderr, "[Detected Signal %d %s]\n", sigNum, sigName);
+
+	/* Set variable to 0 */
+	explicit_bzero(&sigNum, sizeof(sigNum));
+
+	/* Free "coloredStr" to prevent memory leaks */
+	if (_free_color() != 0)
+		fprintf(stderr, "WARNING! Failed to free coloredStr!\n");
+
 	exit(0);
 }
