@@ -2,7 +2,7 @@
 
 This is a simple calculator written in C. It uses `readline` to get user input.
 
-Initially written on January 25, 2021.
+Initially written on January 25, 2021, current version: `1.3`
 
 ## Available commands
 Currently, `calc` supports the following commands:
@@ -15,7 +15,7 @@ Currently, `calc` supports the following commands:
 | exit       | Close this program                      |
 | flags      | Enable flags in help section            |
 | help       | Print help/usage                        |
-| nocolor    | Disable colored output
+| nocolor    | Disable colored output                  |
 | noexamples | Disable examples in help section        |
 | noflags    | Disable flags in help section           |
 | operands   | Print list of operands                  |
