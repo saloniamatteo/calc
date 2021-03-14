@@ -171,6 +171,9 @@ color(char *string, int colorCount, ...)
 	and freeing it before returning it returns random values from memory */
 	//free(coloredStr);
 
+	/* Clear temporary variable */
+	explicit_bzero(tmp, sizeof(tmp));
+
 	/* Return the colored string */
 	return coloredStr;
 }
