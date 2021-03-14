@@ -68,26 +68,26 @@ void printOps(void);
 void printSpecVals(void);
 void sigHandler(int sigNum);
 
-/* Define "long unsigned int" as uint64_t */
-typedef long unsigned int uint64_t;
+/* Define "long unsigned int" as uint64_ct */
+typedef long unsigned int uint64_ct;
 
-/* Define "short unsigned int" as uint8_t */
-typedef short unsigned int uint8_t;
+/* Define "short unsigned int" as uint8_ct */
+typedef short unsigned int uint8_ct;
 
 /* Print colored output? (Default: yes (1); no (0)) */
-uint8_t usecolor = 1;
+uint8_ct usecolor = 1;
 
 /* Print compilation info? (Default: yes (1); no (0)) */
-uint8_t showcmp = 1;
+uint8_ct showcmp = 1;
 
 /* Print program flags? (Default: yes (1); no (0)) */
-uint8_t showflags = 1;
+uint8_ct showflags = 1;
 
 /* Print examples? (Default: yes (1); no (0)) */
-uint8_t showsamp = 1;
+uint8_ct showsamp = 1;
 
 /* Enter just-calculator mode? (Default: no (0); yes (1)) */
-uint8_t justcalc = 0;
+uint8_ct justcalc = 0;
 
 int
 main(int argc, char **argv)
@@ -172,8 +172,8 @@ main(int argc, char **argv)
 		parseInput(input);
 
 		/* Set variables to 0 */
-		explicit_bzero(input, sizeof(*input));
-		explicit_bzero(&optind, sizeof(optind));
+		memset(input, 0, sizeof(*input));
+		memset(&optind, 0, sizeof(optind));
 	}
 
 	/* If this point is somehow reached, exit gracefully */
@@ -374,7 +374,7 @@ parseInput(char *input)
 		/* Store operand in a single character */
 		char operand[1];
 		/* Convert operand value to long unsigned int */
-		uint64_t opnum = (uint64_t)array[1];
+		uint64_ct opnum = (uint64_ct)array[1];
 
 		/* Check if operand exists, using a magic number (this somehow works) */
 		#ifdef ARCH_ARM
@@ -393,12 +393,12 @@ parseInput(char *input)
 		}
 
 	/* Set variables to 0 */
-	explicit_bzero(array, sizeof(*array));
-	explicit_bzero(&i, sizeof(i));
-	explicit_bzero(&first, sizeof(first));
-	explicit_bzero(operand, sizeof(*operand));
-	explicit_bzero(&opnum, sizeof(opnum));
-	explicit_bzero(&second, sizeof(second));
+	memset(array, 0, sizeof(*array));
+	memset(&i, 0, sizeof(i));
+	memset(&first, 0, sizeof(first));
+	memset(operand, 0, sizeof(*operand));
+	memset(&opnum, 0, sizeof(opnum));
+	memset(&second, 0, sizeof(second));
 	}
 }
 
@@ -502,7 +502,7 @@ sigHandler(int sigNum)
 	fprintf(stderr, "[Detected Signal %d %s]\n", sigNum, sigName);
 
 	/* Set variable to 0 */
-	explicit_bzero(&sigNum, sizeof(sigNum));
+	memset(&sigNum, 0, sizeof(sigNum));
 
 	/* Free "coloredStr" to prevent memory leaks */
 	if (_free_color() != 0)

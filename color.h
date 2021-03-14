@@ -87,7 +87,7 @@ int
 _free_color(void)
 {
 	coloredStr = (char *) realloc(coloredStr, 1);
-	explicit_bzero(coloredStr, 1);
+	memset(coloredStr, 0, 1);
 	free(coloredStr);
 
 	coloredStr = NULL;
@@ -112,7 +112,7 @@ color(char *string, int colorCount, ...)
 	char tmp[300];
 
 	/* Clear temporary variable */
-	explicit_bzero(tmp, sizeof(tmp));
+	memset(&tmp, 0, sizeof(tmp));
 
 	/* This variable will contain how much memory to allocate */
 	malloc_size = sizeof(char *) + strlen(string) + colorCount + 1;
@@ -172,7 +172,7 @@ color(char *string, int colorCount, ...)
 	//free(coloredStr);
 
 	/* Clear temporary variable */
-	explicit_bzero(tmp, sizeof(tmp));
+	memset(&tmp, 0, sizeof(tmp));
 
 	/* Return the colored string */
 	return coloredStr;
