@@ -57,6 +57,21 @@ calc> pi4 * 1pI
 0.2500000000
 ```
 
+It's also possible to just print a value/number, for example:
+
+```
+calc> pi
+3.1415926536
+calc> 7
+7
+calc> e
+2.7182818285
+calc> pisq
+9.8696044011
+calc> 3
+3
+```
+
 ## Why was this written?
 
 This was written because I was tired of using the slow Python as a command-line calculator.
