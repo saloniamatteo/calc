@@ -265,7 +265,11 @@ parseInput(char *input)
 		uint64_t opnum = (uint64_t)array[1];
 
 		/* Check if operand exists, using a magic number (this somehow works) */
+		#ifdef ARCH_ARM
 		if (opnum > __CALC_OPVAL) {
+		#else
+		if (opnum < __CALC_OPVAL) {
+		#endif
 			strcpy(operand, array[1]);
 			calculate(first, operand, second);
 		} else {
