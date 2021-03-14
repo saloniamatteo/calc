@@ -7,27 +7,33 @@ Initially written on January 25, 2021, current version: `1.3`
 ## Available commands
 Currently, `calc` supports the following commands:
 
-| Command    | Description                             |
-|------------|-----------------------------------------|
-| clear      | Clear the screen                        |
-| color      | Enable colored output                   |
-| examples   | Enable examples in help section         |
-| exit       | Close this program                      |
-| flags      | Enable flags in help section            |
-| help       | Print help/usage                        |
-| nocolor    | Disable colored output                  |
-| noexamples | Disable examples in help section        |
-| noflags    | Disable flags in help section           |
-| operands   | Print list of operands                  |
-| ops        | Print list of operands                  |
-| quit       | Close this program                      |
-| specvals   | Print [Special Values](#Special-Values) |
+| Command      | Description                             |
+|--------------|-----------------------------------------|
+| `calc`       | Enter just-calculator mode (see [1])    |
+| `clear`      | Clear the screen                        |
+| `color`      | Enable colored output                   |
+| `examples`   | Enable examples in help section         |
+| `exit`       | Close this program                      |
+| `flags`      | Enable flags in help section            |
+| `help`       | Print help/usage                        |
+| `nocalc`     | Disable just-calculator mode (see [1])  |
+| `nocolor`    | Disable colored output                  |
+| `noexamples` | Disable examples in help section        |
+| `noflags`    | Disable flags in help section           |
+| `operands`   | Print list of operands                  |
+| `ops`        | Print list of operands                  |
+| `quit`       | Close this program                      |
+| `specvals`   | Print [Special Values](#Special-Values) |
+
+[1]: the `calc` command is only available outside of just-calculator mode, and
+the `nocalc` command is only available inside just-calculator mode.
 
 ## Flags
 Currently, `calc` supports the following command-line flags:
 
 | Flag | Description                      |
 |------|----------------------------------|
+| `-c` | Enter just-calculator mode       |
 | `-e` | Disable examples in help section |
 | `-f` | Disable flags in help section    |
 | `-h` | Print help and exit              |
@@ -40,11 +46,11 @@ NOTE: Flag order matters! ([efmnh])
 
 | Command | Can be written as | Description    | Result    |
 |---------|-------------------|----------------|-----------|
-| 1 + 1   | 1 p 1             | Addition       | Returns 2 |
-| 1 - 1   | 1 s 1             | Subtraction    | Returns 0 |
-| 2 * 2   | 2 t 2             | Multiplication | Returns 4 |
-| 4 / 2   | 4 d 2             | Division       | Returns 2 |
-| 4 % 2   | 4 m 2             | Modulus        | Returns 0 |
+| `1 + 1` | `1 p 1`           | Addition       | Returns 2 |
+| `1 - 1` | `1 s 1`           | Subtraction    | Returns 0 |
+| `2 * 2` | `2 t 2`           | Multiplication | Returns 4 |
+| `4 / 2` | `4 d 2`           | Division       | Returns 2 |
+| `4 % 2` | `4 m 2`           | Modulus        | Returns 0 |
 
 ## Special Values
 You can (optionally) use Special Values, thanks to the `<math.h>` library.

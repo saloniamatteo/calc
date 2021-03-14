@@ -25,8 +25,8 @@
 /* Use POSIX.1-2008 */
 #define _POSIX_C_SOURCE 200809L
 
-/* When was this last modified */
-#define __CALC_VERSION 1.3
+/* Calc version */
+#define __CALC_VERSION 1.4
 
 /* Magic number that lets us check if the operator number is valid */
 /* NOTE: if Calc returns the first number, even when the operator and
@@ -86,11 +86,15 @@ uint8_t showflags = 1;
 /* Print examples? (Default: yes (1); no (0)) */
 uint8_t showsamp = 1;
 
+/* Enter just-calculator mode? (Default: no (0); yes (1)) */
+uint8_t justcalc = 0;
+
 int
 main(int argc, char **argv)
 {
 	/* Struct containing program options/flags */
 	static struct option longopts[] = {
+		{"just-calc", no_argument, 0, 'c'},
 		{"no-examples", no_argument, 0, 'e'},
 		{"no-flags", no_argument, 0, 'f'},
 		{"no-cmp", no_argument, 0, 'm'},
@@ -101,8 +105,14 @@ main(int argc, char **argv)
 	int optind = 0;
 
 	/* Check if flags have been passed */
-	while ((optind = getopt_long(argc, argv, ":efmnh", longopts, &optind)) != 1) {
+	while ((optind = getopt_long(argc, argv, ":cefmnh", longopts, &optind)) != 1) {
 		switch (optind) {
+
+		/* Enter "just-calculator" mode */
+		case 'c':
+			justcalc = 1;
+			fprintf(stderr, "[Enabled just-calculator mode]\n");
+			break;
 
 		/* Don't show examples when printing help */
 		case 'e':
@@ -175,7 +185,7 @@ void
 calculate(double first, char *operand, double second)
 {
 	/* Make the output bold, if we are using colors */
-	if (usecolor != 0)
+	if (usecolor != 0 && justcalc != 1)
 		printf("\e[1m");
 
 	/* Check the operand */
@@ -200,7 +210,7 @@ calculate(double first, char *operand, double second)
 	}
 
 	/* Back to normal (if using colors) */
-	if (usecolor != 0)
+	if (usecolor != 0 && justcalc != 1)
 		printf("\e[0m");
 }
 
@@ -222,12 +232,17 @@ clearScr(void)
 void
 parseInput(char *input)
 {
+	/* Enter just-calculator mode */
+	if (!strcasecmp(input, "calc") && justcalc != 1) {
+		justcalc = 1;
+		fprintf(stderr, "[Entered just-calculator mode]\n");
+
 	/* Clear the screen */
-	if (!strcasecmp(input, "clear"))
+	} else if (!strcasecmp(input, "clear"))
 		clearScr();
 
 	/* Enable color */
-	else if (!strcasecmp(input, "color")) {
+	else if (!strcasecmp(input, "color") && justcalc != 1) {
 		usecolor = 1;
 		fprintf(stderr, "[Enabled color]\n");
 
@@ -242,6 +257,9 @@ parseInput(char *input)
 			strcpy(archNumStr, "ARM");
 		else
 			strcpy(archNumStr, "Unknown");
+
+		/* Firstly, print if we are in just-calculator mode */
+		fprintf(stderr, "Just-Calculator Mode: %d (yes: 1, no: 0)\n", justcalc);
 
 		/* Print architecture, compiler, date & time info */
 		fprintf(stderr, "Architecture, Compiler, Date & Time.\n");
@@ -263,12 +281,12 @@ parseInput(char *input)
 		exit(0);
 
 	/* Enable examples in help section */
-	else if (!strcasecmp(input, "examples")) {
+	else if (!strcasecmp(input, "examples") && justcalc != 1) {
 		showsamp = 1;
 		fprintf(stderr, "[Enabled examples]\n");
 
 	/* Show flags */
-	} else if (!strcasecmp(input, "flags")) {
+	} else if (!strcasecmp(input, "flags") && justcalc != 1) {
 		showflags = 1;
 		fprintf(stderr, "[Enabled flags]\n");
 
@@ -277,26 +295,31 @@ parseInput(char *input)
 		printHelp();
 	
 	/* Print available operands */
-	else if (!strcasecmp(input, "operands") || !strcasecmp(input, "ops"))
+	else if ((!strcasecmp(input, "operands") || !strcasecmp(input, "ops")) && justcalc != 1)
 		printOps();
 
+	/* Exit out of just-calculator mode */
+	else if (!strcasecmp(input, "nocalc") && justcalc != 0) {
+		justcalc = 0;
+		fprintf(stderr, "[Disabled just-calculator mode]\n");
+
 	/* Disable color */
-	else if (!strcasecmp(input, "nocolor")) {
+	} else if (!strcasecmp(input, "nocolor") && justcalc != 1) {
 		usecolor = 0;
 		fprintf(stderr, "[Disabled color]\n");
 
 	/* Don't show examples */
-	} else if (!strcasecmp(input, "noexamples")) {
+	} else if (!strcasecmp(input, "noexamples") && justcalc != 1) {
 		showsamp = 0;
 		fprintf(stderr, "[Disabled examples]\n");
 
 	/* Don't show flags */
-	} else if (!strcasecmp(input, "noflags")) {
+	} else if (!strcasecmp(input, "noflags") && justcalc != 1) {
 		showflags = 0;
 		fprintf(stderr, "[Disabled flags]\n");
 
 	/* Print special values */
-	} else if (!strcasecmp(input, "specvals"))
+	} else if (!strcasecmp(input, "specvals") && justcalc != 1)
 		printSpecVals();
 
 	else {
@@ -363,7 +386,7 @@ parseInput(char *input)
 			calculate(first, operand, second);
 		} else {
 			/* Operand does not exist, print only the first number (10 decimal places) */
-			if (usecolor != 0)
+			if (usecolor != 0 && justcalc != 1)
 				printf("\e[1m%.10f\e[0m\n", first);
 			else
 				printf("%.10f\n", first);
@@ -386,33 +409,38 @@ printHelp(void)
 	printf("Basic Calculator by Salonia Matteo, made on 25/01/2021, version %.1f\n", __CALC_VERSION);
 
 	/* Show program compilation info */
-	if (showcmp != 0)
+	if (showcmp != 0 && justcalc != 1)
 		printf("Compiled on %s at %s %s, using compiler %s, targeting platform %s.\n", __DATE__, __TIME__, OPTS, CC, ARCH);
 
 	/* Show flags */
-	if (showflags != 0)
-		printf("Flag order: [efmnh]\nFlags:\n\
+	if (showflags != 0 && justcalc != 1)
+		printf("Flag order: [cefmnh]\nFlags:\n\
+%s \t| %s \tEnter \"just-calculator\" mode\n\
 %s \t| %s \tDon't show examples\n\
 %s \t| %s \tDon't show these flags\n\
 %s \t\t| %s \tShow this help\n\
 %s \t| %s \tDon't show program compilation info\n\
 %s \t| %s \tDon't color the output\n",
+color_rvid("--just-calc"), color_rvid("-c"),
 color_rvid("--no-examples"), color_rvid("-e"),
 color_rvid("--no-flags"), color_rvid("-f"),
 color_rvid("--help"), color_rvid("-h"),
 color_rvid("--no-cmp"), color_rvid("-m"),
 color_rvid("--no-color"), color_rvid("-n"));
 
-	/* No option to disable these available commands,
-	 * otherwhise how would this help make any sense? */
-	printf("\nAvailable commands: %s, %s, %s, %s, %s, %s, %s, %s, %s, %s (or %s), %s, %s.\n",
-color_rvid("clear"), color_rvid("color"), color_rvid("examples"),
-color_rvid("exit"), color_rvid("flags"), color_rvid("help"),
-color_rvid("nocolor"), color_rvid("noexamples"), color_rvid("noflags"),
-color_rvid("operands"), color_rvid("ops"), color_rvid("quit"), color_rvid("specvals"));
+	/* If we are in just-calculator mode, print reduced command list */
+	if (justcalc != 1)
+		printf("\nAvailable commands: %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s (or %s), %s, %s.\n",
+			color_rvid("calc"), color_rvid("clear"), color_rvid("color"), color_rvid("examples"),
+			color_rvid("exit"), color_rvid("flags"), color_rvid("help"),
+			color_rvid("nocolor"), color_rvid("noexamples"), color_rvid("noflags"),
+			color_rvid("operands"), color_rvid("ops"), color_rvid("quit"), color_rvid("specvals"));
+	else
+		printf("\n(Just-calculator mode)\nAvailable commands: %s, %s, %s, %s, %s.\n",
+			color_rvid("clear"), color_rvid("exit"), color_rvid("help"), color_rvid("quit"), color_rvid("nocalc"));
 
 	/* Show examples */
-	if (showsamp != 0)
+	if (showsamp != 0 && justcalc != 1)
 		printf("Examples:\n\
 %s\n\
 1 + 1\t1 p 1\t\tAddition\tReturns 2\n\
