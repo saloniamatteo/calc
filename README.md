@@ -16,9 +16,7 @@ Currently, `calc` supports the following commands:
 | operands | Print list of operands  |
 | ops      | Print list of operands  |
 | quit     | Close this program      |
-| specvals | Print [Special Values]  |
-
-![Special Values](Special-Values)
+| specvals | Print [Special Values](#Special-Values)  |
 
 ## Flags
 Currently, `calc` supports the following command-line flags:
