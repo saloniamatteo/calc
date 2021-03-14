@@ -1,11 +1,11 @@
 # CC: can be gcc, clang, or a compiler of your choice
 CC = gcc
-LIBS = -lreadline
+LDFLAGS = -lreadline -lm
 # OPTS: can be -O0, -O1, -O2, -O3, -Os, -Ofast
 OPTS = -Ofast
 # ARCH & TUNE: modify to compile exclusively for a CPU 
-ARCH = native
-TUNE = native
+ARCH = -march=native
+TUNE = -mtune=native
 # CFLAGS: additional compiler flags
 CFLAGS = -Wall
 # LINKER: choose a linker to use; can be bfd, gold, lld
@@ -16,12 +16,12 @@ CSTD = c99
 
 all: calc
 
-calc: calc.o
-	@$(CC) $^ -o $@ $(CFLAGS) $(LIBS) $(OPTS) $(LINKER) -march=$(ARCH) -mtune=$(TUNE) -std=$(CSTD)
+calc.o: calc.c platform.h optimizations.h compiler.h
+	@$(CC) -c calc.c -o $@ $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) -std=$(CSTD)
 	@echo "CC $<"
 
-calc.o: calc.c optimizations.h compiler.h
-	@$(CC) -c calc.c -o $@ $(CFLAGS) $(LIBS) $(OPTS) $(LINKER) -march=$(ARCH) -mtune=$(TUNE) -std=$(CSTD)
+calc: calc.o
+	@$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) -std=$(CSTD)
 	@echo "CC $<"
 
 clean:

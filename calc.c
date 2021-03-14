@@ -1,13 +1,14 @@
 /* See LICENSE file for copyright and license details.
  *
- * calc is a Simple Calculator written in C by Salonia Matteo. It
- * takes input from stdin using libreadline, and prints the
+ * calc is a Simple Calculator written in C by Salonia Matteo.
+ * It takes input from stdin using libreadline, and prints the
  * result from the requested operation to stdout.
  *
  * Made by Salonia Matteo <saloniamatteo@pm.me>
  *
  */
 
+#include <math.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +17,7 @@
 #include <getopt.h>
 #include <readline/readline.h>
 
+#include "platform.h"
 #include "optimizations.h"
 #include "compiler.h"
 
@@ -23,7 +25,21 @@
 #define _POSIX_C_SOURCE 200809L
 
 /* When was this last modified */
-#define _CALC_LAST_MOD_DATE "13/03/2021"
+#define _CALC_LAST_MOD_DATE "14/03/2021"
+
+/* Magic number that lets us check if the operator number is valid */
+/* NOTE: if Calc returns the first number, even when the operator and the second number were entered, try recompiling */
+#ifdef ARCH
+	#ifndef ARCH_ARM
+	#define __CALC_OPVAL 0x1400000000000
+	#else
+	#define __CALC_OPVAL 0x7500000000
+	#endif
+#else
+	#warning "Your architecture is unknown!"
+	#warning "Using default x86 value..."
+	#define __CALC_OPVAL 0x1400000000000
+#endif
 
 /* Function prototypes */
 void calculate(double first, char *operand, double second);
@@ -47,14 +63,26 @@ main(int argc, char **argv)
 
 	/* Struct containing program options/flags */
 	static struct option longopts[] = {
+		{"help", no_argument, 0, 'h'},
 		{"no-color", no_argument, 0, 'n'}
 	};
 
-	/* Check if argument has been passed */
-	while ((optind = getopt_long(argc, argv, "n", longopts, &optind)) != 1) {
+	/* Check if flags have been passed */
+	while ((optind = getopt_long(argc, argv, ":hn", longopts, &optind)) != 1) {
 		switch (optind) {
+
+		/* Unknown option */
+		case '?':
+			fprintf(stderr, "[Option \"%c\" is unknown, ignoring]\n", optopt);
+
+		/* Print help and exit */
+		case 'h':
+			printHelp();
+			return 0;
+			break;
+
+		/* Disable colored output */
 		case 'n':
-			/* Disable colored output */
 			usecolor = 0;
 			printf("[Disabled colored output]\n");
 			break;
@@ -144,7 +172,7 @@ void
 printHelp(void)
 {
 	printf("Basic Calculator by Salonia Matteo, made on 25/01/2021, last modified %s\n\
-Compiled on %s at %s %s, using compiler %s.\n\
+Compiled on %s at %s %s, using compiler %s, targeting platform %s.\n\
 Available commands: \e[7mclear\e[0m, \e[7mhelp\e[0m, \e[7mexit\e[0m, \e[7mquit\e[0m, \e[7moperands\e[0m (or \e[7mops\e[0m), \e[7mspecvals\e[0m.\n\
 Examples:\n\
 \e[1;4m[Cmd]\t[Alt sign]\t[Description]\t[Result]\e[0m\n\
@@ -155,7 +183,7 @@ Examples:\n\
 4 %% 2\t4 m 2\t\tModulus\t\tReturns 0\n",
 _CALC_LAST_MOD_DATE,
 __DATE__, __TIME__,
-OPTS, CC);
+OPTS, CC, ARCH);
 }
 
 /* Parse user input */
@@ -198,36 +226,36 @@ parseInput(char *input)
 		/* Assign array items to variables */
 		/* Special values: pi, pi2, pi4, 1pi, 2pi, pisq, e */
 		if (!strcasecmp(array[0], "pi"))
-			first = 3.1415926535;
+			first = M_PI;
 		else if (!strcasecmp(array[0], "pi2"))
-			first = 1.5707963267;
+			first = M_PI_2;
 		else if (!strcasecmp(array[0], "pi4"))
-			first = 0.7853981633;
+			first = M_PI_4;
 		else if (!strcasecmp(array[0], "1pi"))
-			first = 0.3183098861;
+			first = M_1_PI;
 		else if (!strcasecmp(array[0], "2pi"))
-			first = 0.6366197723;
+			first = M_2_PI;
 		else if (!strcasecmp(array[0], "pisq"))
-			first = 9.8696044010;
+			first = M_PI * M_PI;
 		else if (!strcasecmp(array[0], "e"))
-			first = 2.7182818284;
+			first = M_E;
 		else
 			first = atof(array[0]);
 
 		if (!strcasecmp(array[2], "pi"))
-			second = 3.1415926535;
+			second = M_PI;
 		else if (!strcasecmp(array[2], "pi2"))
-			second = 1.5707963267;
+			second = M_PI_2;
 		else if (!strcasecmp(array[2], "pi4"))
-			second = 0.7853981633;
+			second = M_PI_4;
 		else if (!strcasecmp(array[2], "1pi"))
-			second = 0.3183098861;
+			second = M_1_PI;
 		else if (!strcasecmp(array[2], "2pi"))
-			second = 0.6366197723;
+			second = M_2_PI;
 		else if (!strcasecmp(array[2], "pisq"))
-			second = 9.8696044010;
+			second = M_PI * M_PI;
 		else if (!strcasecmp(array[2], "e"))
-			second = 2.7182818284;
+			second = M_E;
 		else
 			second = atof(array[2]);
 
@@ -237,7 +265,7 @@ parseInput(char *input)
 		uint64_t opnum = (uint64_t)array[1];
 
 		/* Check if operand exists, using a magic number (this somehow works) */
-		if (opnum < 0x1400000000000) {
+		if (opnum > __CALC_OPVAL) {
 			strcpy(operand, array[1]);
 			calculate(first, operand, second);
 		} else {
