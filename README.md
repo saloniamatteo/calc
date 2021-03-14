@@ -30,14 +30,17 @@ Here are a few examples:
 ## Special Values
 You can (optionally) use Special Values, thanks to the `<math.h>` library.
 
-The current implemented values are:
-+ E: The value of Euler's number
-+ Pi: The value of Pi
-+ Pi2: Pi / 2
-+ Pi4: Pi / 4
-+ 1Pi: 1 / Pi
-+ 2Pi: 2 / Pi
-+ PiSq: Pi² (Pi * Pi)
+Here's a table containing the currently implemented values.
+
+| Special Value | Description                 |
+|---------------|-----------------------------|
+| E             | The value of Euler's number |
+| Pi            | The value of Pi             |
+| Pi2           | Pi / 2                      |
+| Pi4           | Pi / 4                      |
+| 1Pi           | 1 / Pi                      |
+| 2Pi           | 2 / Pi                      |
+| Pisq          | Pi² (Pi * Pi)               |
 
 NOTE: these are case-insensitive, so don't worry about writing them all lowercase, uppercase, etc.
 
