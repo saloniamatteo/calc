@@ -80,7 +80,6 @@ enum fontEffects {
 } fontEffects;
 
 char *coloredStr = NULL;
-size_t malloc_size;
 
 /* Free previously allocated memory */
 int
@@ -115,7 +114,7 @@ color(char *string, int colorCount, ...)
 	memset(&tmp, 0, sizeof(tmp));
 
 	/* This variable will contain how much memory to allocate */
-	malloc_size = sizeof(char *) + strlen(string) + colorCount + 1;
+	size_t malloc_size = sizeof(char *) + strlen(string) + colorCount + 1;
 
 	/* Variadic argument list */
 	va_list argl;
