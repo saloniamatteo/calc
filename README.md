@@ -7,18 +7,16 @@ Initially written on January 25, 2021.
 ## Available commands
 Currently, `calc` supports the following commands:
 
-| Command  | Description                      |
-|----------|----------------------------------|
-| clear    | Clear the screen                 |
-| color    | Enable colored output            |
-| exit     | Close this program               |
-| help     | Print help/usage                 |
-| operands | Print list of operands           |
-| ops      | Print list of operands           |
-| quit     | Close this program               |
-| specvals | Print [Special Values][specvals] |
-
-[specvals]: README.md#Special-Values
+| Command  | Description                             |
+|----------|-----------------------------------------|
+| clear    | Clear the screen                        |
+| color    | Enable colored output                   |
+| exit     | Close this program                      |
+| help     | Print help/usage                        |
+| operands | Print list of operands                  |
+| ops      | Print list of operands                  |
+| quit     | Close this program                      |
+| specvals | Print [Special Values](#Special-Values) |
 
 ## Flags
 Currently, `calc` supports the following command-line flags:
