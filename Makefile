@@ -12,16 +12,16 @@ CFLAGS = -Wall
 # comment to use the default linker, uncomment to use a custom linker
 #LINKER = -fuse-ld=gold
 # CSTD: which C revision to use
-CSTD = c99
+CSTD = -std=c99
 
 all: calc
 
-calc.o: calc.c platform.h optimizations.h compiler.h
-	@$(CC) -c calc.c -o $@ $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) -std=$(CSTD)
+calc: calc.o
+	@$(CC) $^ -o $@ $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(CSTD) $(LDFLAGS)
 	@echo "CC $<"
 
-calc: calc.o
-	@$(CC) $^ -o $@ $(CFLAGS) $(LDFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) -std=$(CSTD)
+calc.o: calc.c platform.h optimizations.h compiler.h
+	@$(CC) -c $< -o $@ $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(LDFLAGS)
 	@echo "CC $<"
 
 clean:

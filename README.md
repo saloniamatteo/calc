@@ -4,20 +4,31 @@ This is a simple calculator written in C. It uses `readline` to get user input.
 
 Initially written on January 25, 2021.
 
-The available commands are:
-+ clear
-+ exit
-+ help
-+ operands
-+ ops
-+ quit
-+ specvals
+## Available commands
+Currently, `calc` supports the following commands:
 
-You can also use the following flags:
-+ `-h`: print help and exit
-+ `-n`: disable colored output
+| Command  | Description             |
+|----------|-------------------------|
+| clear    | Clear the screen        |
+| color    | Enable colored output   |
+| exit     | Close this program      |
+| help     | Print help/usage        |
+| operands | Print list of operands  |
+| ops      | Print list of operands  |
+| quit     | Close this program      |
+| specvals | Print [Special Values]  |
 
-Here are a few examples:
+![Special Values](Special-Values)
+
+## Flags
+Currently, `calc` supports the following command-line flags:
+
+| Flag | Description            |
+|------|------------------------|
+| `-h` | Print help and exit    |
+| `-n` | Disable colored output |
+
+## Example operations
 
 | Command | Can be written as | Description    | Result    |
 |---------|-------------------|----------------|-----------|
@@ -81,3 +92,8 @@ I wanted something fast, that I could modify whenever I wanted to.
 So, I quickly started writing the barebones of the calculator. It's nothing fancy, really, but a nice tool to have.
 
 More features might be added, if necessary.
+
+For any help, either:
+	1. Create an issue;
+	2. Open a pull request;
+	3. Send me an email [(saloniamatteo@pm.me)](mailto:saloniamatteo@pm.me).

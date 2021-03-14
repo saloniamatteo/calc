@@ -28,11 +28,12 @@
 #define _CALC_LAST_MOD_DATE "14/03/2021"
 
 /* Magic number that lets us check if the operator number is valid */
-/* NOTE: if Calc returns the first number, even when the operator and the second number were entered, try recompiling */
+/* NOTE: if Calc returns the first number, even when the operator and
+ * the second number were entered, try to recompile (rare issue on ARM) */
 #ifdef ARCH
-	#ifndef ARCH_ARM
+	#ifdef ARCH_x86
 	#define __CALC_OPVAL 0x1400000000000
-	#else
+	#elif defined ARCH_ARM
 	#define __CALC_OPVAL 0x7500000000
 	#endif
 #else
@@ -84,7 +85,7 @@ main(int argc, char **argv)
 		/* Disable colored output */
 		case 'n':
 			usecolor = 0;
-			printf("[Disabled colored output]\n");
+			fprintf(stderr, "[Disabled colored output]\n");
 			break;
 		}
 
@@ -173,7 +174,10 @@ printHelp(void)
 {
 	printf("Basic Calculator by Salonia Matteo, made on 25/01/2021, last modified %s\n\
 Compiled on %s at %s %s, using compiler %s, targeting platform %s.\n\
-Available commands: \e[7mclear\e[0m, \e[7mhelp\e[0m, \e[7mexit\e[0m, \e[7mquit\e[0m, \e[7moperands\e[0m (or \e[7mops\e[0m), \e[7mspecvals\e[0m.\n\
+Available commands:\
+\e[7mclear\e[0m, \e[7mhelp\e[0m, \e[7mexit\e[0m, \e[7mquit\e[0m, \
+\e[7moperands\e[0m (or \e[7mops\e[0m), \e[7mspecvals\e[0m, \
+\e[7mnocolor\e[0m, \e[7mcolor\e[0m.\n\
 Examples:\n\
 \e[1;4m[Cmd]\t[Alt sign]\t[Description]\t[Result]\e[0m\n\
 1 + 1\t1 p 1\t\tAddition\tReturns 2\n\
@@ -194,8 +198,13 @@ parseInput(char *input)
 	if (!strcasecmp(input, "clear"))
 		clearScr();
 
+	/* Enable color */
+	else if (!strcasecmp(input, "color")) {
+		usecolor = 1;
+		fprintf(stderr, "[Enabled color]\n");
+
 	/* Exit without errors */
-	else if (!strcasecmp(input, "exit") || !strcasecmp(input, "quit"))
+	} else if (!strcasecmp(input, "exit") || !strcasecmp(input, "quit"))
 		exit(0);
 
 	/* Print this program's help */
@@ -206,8 +215,13 @@ parseInput(char *input)
 	else if (!strcasecmp(input, "operands") || !strcasecmp(input, "ops"))
 		printOps();
 
+	/* Disable color */
+	else if (!strcasecmp(input, "nocolor")) {
+		usecolor = 0;
+		fprintf(stderr, "[Disabled color]\n");
+
 	/* Print special values */
-	else if (!strcasecmp(input, "specvals"))
+	} else if (!strcasecmp(input, "specvals"))
 		printSpecVals();
 
 	else {
@@ -328,6 +342,6 @@ sigHandler(int sigNum)
 		sigName = "";
 
 	/* Print detected signal and exit gracefully */
-	printf("[Detected Signal %d %s]\n", sigNum, sigName);
+	fprintf(stderr, "[Detected Signal %d %s]\n", sigNum, sigName);
 	exit(0);
 }
