@@ -26,7 +26,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 /* When was this last modified */
-#define _CALC_LAST_MOD_DATE "14/03/2021"
+#define __CALC_VERSION 1.3
 
 /* Magic number that lets us check if the operator number is valid */
 /* NOTE: if Calc returns the first number, even when the operator and
@@ -254,8 +254,8 @@ parseInput(char *input)
 
 		/* Print POSIX C source, last modify date, opval */
 		fprintf(stderr, "Miscellaneous.\n");
-		fprintf(stderr, "POSIX C Source: %ld\nLast Modify Date: %s\nOpVal: 0x%lX (%lu)\n",
-				_POSIX_C_SOURCE, _CALC_LAST_MOD_DATE, __CALC_OPVAL, __CALC_OPVAL);
+		fprintf(stderr, "POSIX C Source: %ld\nCalc version: %.1f\nOpVal: 0x%lX (%lu)\n",
+				_POSIX_C_SOURCE, __CALC_VERSION, __CALC_OPVAL, __CALC_OPVAL);
 	#endif
 
 	/* Exit without errors */
@@ -383,7 +383,7 @@ parseInput(char *input)
 void
 printHelp(void)
 {
-	printf("Basic Calculator by Salonia Matteo, made on 25/01/2021, last modified %s\n", _CALC_LAST_MOD_DATE);
+	printf("Basic Calculator by Salonia Matteo, made on 25/01/2021, version %.1f\n", __CALC_VERSION);
 
 	/* Show program compilation info */
 	if (showcmp != 0)
