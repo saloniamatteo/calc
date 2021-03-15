@@ -125,7 +125,7 @@ Let's say we want to convert `30` to binary. In this case, we'll have:
 (`00011110` in binary)
 
 Now, let's talk about bit shifting.
-When we "shift a bit", it means to move the first (or last) bit one place
+When we "shift a bit", it means to move every bit one place
 to the right (`>>`) or to the left (`<<`).
 
 For example, I want to bit shift 7 one place to the right:
@@ -157,7 +157,20 @@ Will become `62`:
 |-----|----|----|----|---|---|---|---|
 | 0   | 0  | 1  | 1  | 1 | 1 | 1 | 0 |
 
-The same applies to bit-shifting to the right.
+The same applies to bit-shifting to the right:
+Let's try to bit-shift a fancy number: `92` (64 + 16 + 8 + 4):
+
+| 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+|-----|----|----|----|---|---|---|---|
+| 0   | 1  | 0  | 1  | 1 | 1 | 0 | 0 |
+
+The result will be `46`:
+
+| 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+|-----|----|----|----|---|---|---|---|
+| 0   | 0  | 1  | 0  | 1 | 1 | 1 | 0 |
+
+***
 
 Bit shifting is useful to calculate powers of 2, for example:
 
