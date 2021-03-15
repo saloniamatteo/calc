@@ -184,15 +184,18 @@ If you want to statically link `calc` to share it, make sure you have `musl`, `m
 After you've met all of the requirements, run the following:
 
 ```bash
-cd path/to/calc
-mkdir -p libs/{readline-src,readline,ncurses-src,ncurses}
+# If you haven't cloned this repository yet
+git clone https://github.com/saloniamatteo/calc; cd calc
+mkdir -p libs/{readline,ncurses}
 cd libs
-mv /path/to/libreadline readline-src
-mv /path/to/libncurses ncurses-src
+git clone https://git.savannah.gnu.org/git/readline.git readline-src
+git clone https://github.com/mirror/ncurses ncurses-src
 cd readline-src
-./configure --prefix=../readline CC=musl-gcc && make -kj$(nproc) && make install-static
+# If compiling on Android, add "--host=aarch64" after "CC=musl-gcc"
+./configure --prefix=$(pwd)../readline CC=musl-gcc && make -kj$(nproc) && make install-static
 cd ../ncurses-src
-./configure --prefix=../ncurses CC=musl-gcc && make -kj$(nproc) && make install
+# If compiling on Android, add "--host=aarch64" after "CC=musl-gcc"
+./configure --prefix=$(pwd)../ncurses CC=musl-gcc && make -kj$(nproc) && make install
 cd ../..
 make static-deb
 ```
