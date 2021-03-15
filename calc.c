@@ -34,7 +34,10 @@
 /* Also, define ARCHNUM (1 is x86, 2 is ARM) */
 #ifdef ARCH
 	#ifdef ARCH_x86
-	#define __CALC_OPVAL 0x1400000000000
+	#if OS == "Win32"
+		#define __CALC_OPVAL 99
+	#else
+		#define __CALC_OPVAL 0x1400000000000
 	#define ARCHNUM 1
 	#elif defined ARCH_ARM
 	#define __CALC_OPVAL 0x7500000000
