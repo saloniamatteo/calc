@@ -161,9 +161,9 @@ The same applies to bit-shifting to the right.
 
 Bit shifting is useful to calculate powers of 2, for example:
 
-2^16: `1 << 16`: 65536
-2^30: `1 << 30`: 2147483648 (32 bit limit)
-2^31: `1 << 31`: 4294967296 (64 bit limit)
+- 2^16: `1 << 16`: 65536
+- 2^30: `1 << 30`: 2147483648 (32 bit limit)
+- 2^31: `1 << 31`: 4294967296 (64 bit limit)
 
 ## Statically linking & building
 If you want to statically link `calc` to share it, make sure you have `musl`, `musl-gcc`, and a copy of the source code of `libreadline` and `libncurses` (needed by `libreadline`).
