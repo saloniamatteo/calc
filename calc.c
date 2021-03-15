@@ -26,7 +26,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 /* Calc version */
-#define __CALC_VERSION 1.4
+#define __CALC_VERSION 1.5
 
 /* Magic number that lets us check if the operator number is valid */
 /* NOTE: if Calc returns the first number, even when the operator and
@@ -204,6 +204,12 @@ calculate(double first, char *operand, double second)
 		break;
 	case '%': case 'm':
 		printf("%ld\n", (long int)first % (long int)second);
+		break;
+	case '<': case 'l':
+		printf("%ld\n", (long int)first << (long int)second);
+		break;
+	case '>': case 'r':
+		printf("%ld\n", (long int)first >> (long int)second);
 		break;
 	default:
 		printf("Unknown operand \"%s\"\n", operand);
@@ -443,12 +449,14 @@ color_rvid("--no-color"), color_rvid("-n"));
 	if (showsamp != 0 && justcalc != 1)
 		printf("Examples:\n\
 %s\n\
-1 + 1\t1 p 1\t\tAddition\tReturns 2\n\
-1 - 1\t1 s 1\t\tSubtraction\tReturns 0\n\
-2 * 2\t2 t 2\t\tMultiplication\tReturns 4\n\
-4 / 2\t4 d 2\t\tDivision\tReturns 2\n\
-4 %% 2\t4 m 2\t\tModulus\t\tReturns 0\n",
-color_bu("[Cmd]\t[Alt sign]\t[Description]\t[Result]"));
+1 + 1\t\t1 p 1\t\tAddition\tReturns 2\n\
+1 - 1\t\t1 s 1\t\tSubtraction\tReturns 0\n\
+2 * 2\t\t2 t 2\t\tMultiplication\tReturns 4\n\
+4 / 2\t\t4 d 2\t\tDivision\tReturns 2\n\
+4 %% 2\t\t4 m 2\t\tModulus\t\tReturns 0\n\
+1 < 16\t\t1 l 16\t\tBit-shifting\tReturns 65536\n\
+4096 > 1\t4096 r 1\tBit-shifting\tReturns 2048\n",
+color_bu("[Cmd]\t\t[Alt sign]\t[Description]\t[Result]"));
 }
 
 /* Print available operands and their short notation */
@@ -461,7 +469,9 @@ printOps(void)
 -\t\t\t\ts\n\
 *\t\t\t\tt\n\
 /\t\t\t\td\n\
-%%\t\t\t\tm\n",
+%%\t\t\t\tm\n\
+<\t\t\t\tl\n\
+>\t\t\t\tr\n",
 color_bu("[Symbol]"), color_bu("[Latin letter]"));
 }
 
