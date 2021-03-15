@@ -196,12 +196,12 @@ git clone https://github.com/mirror/ncurses ncurses-src
 # Compiling Sources
 cd readline-src
 # If compiling on Android, run the following command:
-#./configure --prefix=$(pwd)../readline CC=clang && make -kj$(nproc) && make install-static
-./configure --prefix=$(pwd)../readline CC=musl-gcc && make -kj$(nproc) && make install-static
+#./configure --prefix=$(pwd)/../readline CC=clang && make -kj$(nproc) && make install-static
+./configure --prefix=$(pwd)/../readline CC=musl-gcc && make -kj$(nproc) && make install-static
 cd ../ncurses-src
 # If compiling on Android, run the following command:
-#./configure --prefix=$(pwd)../ncurses CC=clang && make -kj$(nproc) && make install
-./configure --prefix=$(pwd)../ncurses CC=musl-gcc && make -kj$(nproc) && make install
+#./configure --prefix=$(pwd)/../ncurses CC=clang && make -kj$(nproc) && make install
+./configure --prefix=$(pwd)/../ncurses CC=musl-gcc && make -kj$(nproc) && make install
 
 # Finally, Statically link & compile calc
 cd ../..
