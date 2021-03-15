@@ -9,7 +9,7 @@ CC = gcc
 # Statically linked builds must be made using musl-gcc,
 # because the static libraries (readline, ncurses) do not
 # work with glibc
-#CC = musl-gcc
+STATIC_CC = musl-gcc
 
 # Linker flags used for Dynamic linking
 LDFLAGS = -lreadline -lm
@@ -73,12 +73,12 @@ calc-debug.o: calc.c color.h platform.h optimizations.h compiler.h
 static-deb: static-debug
 
 static-debug: calc-debstatic.o
-	@$(CC) $^ -o calc -DDEBUG=1 -DSTATIC_BUILD=1 --static $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(CSTD) $(INCLUDE_PATHS) $(LDFLAGS_STATIC)
+	@$(STATIC_CC) $^ -o calc -DDEBUG=1 -DSTATIC_BUILD=1 --static $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(CSTD) $(INCLUDE_PATHS) $(LDFLAGS_STATIC)
 	@echo "CC $<"
 
 calc-debstatic.o: calc.c color.h platform.h optimizations.h compiler.h
 	@echo "[STATIC DEBUG]"
-	@$(CC) -c $< -o $@ -DDEBUG=1 -DSTATIC_BUILD=1 --static $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(INCLUDE_PATHS) $(LDFLAGS_STATIC)
+	@$(STATIC_CC) -c $< -o $@ -DDEBUG=1 -DSTATIC_BUILD=1 --static $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(INCLUDE_PATHS) $(LDFLAGS_STATIC)
 	@echo "CC $<"
 
 clean:
