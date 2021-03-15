@@ -112,12 +112,14 @@ In the computer world, integers are represented using 0s and 1s;
 For example, if we take the number `7`, it would be represented as follows:
 
 | 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+|-----|----|----|----|---|---|---|---|
 | 0   | 0  | 0  | 0  | 0 | 1 | 1 | 1 |
 
 (That is `00000111` in binary; for simplicity's sake we'll just do a byte)
 
 Let's say we want to convert `30` to binary. In this case, we'll have:
 | 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+|-----|----|----|----|---|---|---|---|
 | 0   | 0  | 0  | 1  | 1 | 1 | 1 | 0 |
 
 (`00011110` in binary)
@@ -129,6 +131,7 @@ to the right (`>>`) or to the left (`<<`).
 For example, I want to bit shift 7 one place to the right:
 
 | 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+|-----|----|----|----|---|---|---|---|
 | 0   | 0  | 0  | 0  | 0 | 0 | 1 | 1 |
 
 Now, the only values left are `2` and `1`, which make up `3`.
@@ -136,6 +139,7 @@ Now, the only values left are `2` and `1`, which make up `3`.
 Instead, let's try to do `30`:
 
 | 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+|-----|----|----|----|---|---|---|---|
 | 0   | 0  | 0  | 0  | 1 | 1 | 1 | 1 |
 
 As you can see, the only digits left now are `8`, `4`, `2`, and `1`,
@@ -144,11 +148,13 @@ which make up `15`.
 This time, let's do a bigger value, like `124`:
 
 | 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+|-----|----|----|----|---|---|---|---|
 | 0   | 1  | 1  | 1  | 1 | 1 | 0 | 0 |
 
 Will become `62`:
 
 | 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
+|-----|----|----|----|---|---|---|---|
 | 0   | 0  | 1  | 1  | 1 | 1 | 1 | 0 |
 
 The same applies to bit-shifting to the right.
