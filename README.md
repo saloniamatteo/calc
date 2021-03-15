@@ -125,10 +125,10 @@ Let's say we want to convert `30` to binary. In this case, we'll have:
 (`00011110` in binary)
 
 Now, let's talk about bit shifting.
-When we "shift a bit", it means to move every bit one place
-to the right (`>>`) or to the left (`<<`).
+When we "shift a bit", it means to move every bit, for example, 
+one place to the right (`>>`) or to the left (`<<`).
 
-For example, I want to bit shift 7 one place to the right:
+Let's say I want to bit shift 7 one place to the right:
 
 | 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
 |-----|----|----|----|---|---|---|---|
