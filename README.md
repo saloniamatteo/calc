@@ -103,8 +103,8 @@ calc> 3
 
 ## Bit Shifting
 In C, there are two kinds of bit-shifting:
-	- 1. Bit-shifting to the left (`<<`)
-	- 2. Bit-shifting to the right (`>>`)
+- Bit-shifting to the left (`<<`)
+- Bit-shifting to the right (`>>`)
 
 ___What is bit shifting?___
 Bit shifting is, well, used to shift bits.
@@ -176,6 +176,6 @@ So, I quickly started writing the barebones of the calculator. It's nothing fanc
 More features might be added, if necessary.
 
 For any help, either:
-	- 1. Create an issue;
-	- 2. Open a pull request;
-	- 3. Send me an email [(saloniamatteo@pm.me)](mailto:saloniamatteo@pm.me).
+- Create an issue;
+- Open a pull request;
+- Send me an email [(saloniamatteo@pm.me)](mailto:saloniamatteo@pm.me).
