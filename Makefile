@@ -1,11 +1,25 @@
 # CC: can be gcc, clang, or a compiler of your choice
+#CC = aarch64-linux-gnu-gcc
 CC = gcc
 LDFLAGS = -lreadline -lm
 # OPTS: can be -O0, -O1, -O2, -O3, -Os, -Ofast
 OPTS = -Ofast
 # ARCH & TUNE: modify to compile exclusively for a CPU 
-ARCH = -march=native
-TUNE = -mtune=native
+NOARCHTUNE = 0
+
+# Disable if using cross-compiler, or if compiling on ARM
+ifeq ($(CC), aarch64-linux-gnu-gcc)
+NOARCHTUNE = 1
+else ifeq ($(shell uname -m), "aarch64")
+NOARCHTUNE = 1
+endif
+
+# Check if NOARCHTUNE is 0 (enable ARCH & TUNE)
+ifeq (NOARCHTUNE, 0)
+	ARCH = -march=native
+	TUNE = -mtune=native
+endif
+
 # CFLAGS: additional compiler flags
 CFLAGS = -Wall
 # LINKER: choose a linker to use; can be bfd, gold, lld
