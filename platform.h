@@ -52,11 +52,11 @@
 
 /* Firstly, check if using Windows, or UNIX */
 #if defined(_WIN32) || defined(WIN32) || defined(__CYGWIN__) || defined(__MINGW32__) || defined(__BORLANDC__)
-#define OS "Win32"
+#define OS_WIN32 WIN32
 #elif defined(__unix__)
-#define OS "Unix"
+#define OS_UNIX UNIX
 #else
-#define OS "Unknown"
+#define OS_UNK UNKNOWN
 #endif
 
 /* Macros used by MSVC */

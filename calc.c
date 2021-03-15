@@ -34,10 +34,11 @@
 /* Also, define ARCHNUM (1 is x86, 2 is ARM) */
 #ifdef ARCH
 	#ifdef ARCH_x86
-	#if OS == "Win32"
+	#ifdef OS_WIN32
 		#define __CALC_OPVAL 99
 	#else
 		#define __CALC_OPVAL 0x1400000000000
+	#endif
 	#define ARCHNUM 1
 	#elif defined ARCH_ARM
 	#define __CALC_OPVAL 0x7500000000
@@ -60,6 +61,14 @@
 /* Allow debug? (Default: yes (1), set to 0 to disable) */
 #ifndef DEBUG
 #define DEBUG 1
+#endif
+
+#ifdef OS_WIN32
+#define OS "Win32"
+#elif defined OS_UNIX
+#define OS "Unix"
+#elif defined OS_UNK
+#define OS "Unknown"
 #endif
 
 /* Function prototypes */
@@ -419,7 +428,7 @@ printHelp(void)
 
 	/* Show program compilation info */
 	if (showcmp != 0 && justcalc != 1)
-		printf("Compiled on %s at %s %s, using compiler %s, targeting platform %s.\n", __DATE__, __TIME__, OPTS, CC, ARCH);
+		printf("Compiled on %s at %s %s, using compiler %s, targeting platform %s, operating system %s.\n", __DATE__, __TIME__, OPTS, CC, ARCH, OS);
 
 	/* Show flags */
 	if (showflags != 0 && justcalc != 1)
