@@ -1,13 +1,30 @@
 # CC: can be gcc, clang, or a compiler of your choice
+
+# Cross-compiler
 #CC = aarch64-linux-gnu-gcc
-CC = gcc
+
+# Normal compiler
+#CC = gcc
+
+# Statically linked builds must be made using musl-gcc,
+# because the static libraries (readline, ncurses) do not
+# work with glibc
+CC = musl-gcc
+
+# Linker flags used for Dynamic linking
 LDFLAGS = -lreadline -lm
-# OPTS: can be -O0, -O1, -O2, -O3, -Os, -Ofast
+# Linker flags used for Static linking
+LDFLAGS_STATIC = ./libs/readline/lib/libreadline.a ./libs/ncurses/lib/libncurses.a -lm
+INCLUDE_PATHS = -I./libs/readline/include -I./libs/ncurses/include
+
+# Optimizations. Can be -O0, -O1, -O2, -O3, -Os, -Ofast
 OPTS = -Ofast
-# ARCH & TUNE: modify to compile exclusively for a CPU 
+
+# Architecture, Tune. Set to 1 to disable.
 NOARCHTUNE = 0
 
-# Disable if using cross-compiler, or if compiling on ARM
+# Disable ARCH & TUNE if using cross-compiler,
+# or if compiling on ARM.
 ifeq ($(CC), aarch64-linux-gnu-gcc)
 NOARCHTUNE = 1
 else ifeq ($(shell uname -m), "aarch64")
@@ -37,7 +54,7 @@ release: calc-rel.o
 
 calc-rel.o: calc.c color.h platform.h optimizations.h compiler.h
 	@echo "[RELEASE]"
-	@$(CC) -c $< -o $@ -DDEBUG=0 $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(LDFLAGS)
+	@$(CC) -c $< -o $@ -DDEBUG=0 $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE)
 	@echo "CC $<"
 
 # Debug (Debugging Enabled)
@@ -49,10 +66,22 @@ debug: calc-debug.o
 
 calc-debug.o: calc.c color.h platform.h optimizations.h compiler.h
 	@echo "[DEBUG]"
-	@$(CC) -c $< -o $@ $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(LDFLAGS)
+	@$(CC) -c $< -o $@ $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE)
+	@echo "CC $<"
+
+# Statically-Linked Debug (Debugging Enabled, Portable)
+static-deb: static-debug
+
+static-debug: calc-debstatic.o
+	@$(CC) $^ -o calc -DDEBUG=1 -DSTATIC_BUILD=1 --static $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(CSTD) $(INCLUDE_PATHS) $(LDFLAGS_STATIC)
+	@echo "CC $<"
+
+calc-debstatic.o: calc.c color.h platform.h optimizations.h compiler.h
+	@echo "[STATIC DEBUG]"
+	@$(CC) -c $< -o $@ -DDEBUG=1 -DSTATIC_BUILD=1 --static $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(INCLUDE_PATHS) $(LDFLAGS_STATIC)
 	@echo "CC $<"
 
 clean:
 	rm -f *.o calc
 
-.PHONY = clean deb debug rel release
+.PHONY = clean deb debug rel release static-deb static-debug
