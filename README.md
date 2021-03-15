@@ -165,8 +165,36 @@ Bit shifting is useful to calculate powers of 2, for example:
 2^30: `1 << 30`: 2147483648 (32 bit limit)
 2^31: `1 << 31`: 4294967296 (64 bit limit)
 
-## Why was this written?
+## Statically linking & building
+If you want to statically link `calc` to share it, make sure you have `musl`, `musl-gcc`, and a copy of the source code of `libreadline` and `libncurses` (needed by `libreadline`).
 
+After you've met all of the requirements, run the following:
+
+```bash
+cd path/to/calc
+mkdir -p libs/{readline-src,readline,ncurses-src,ncurses}
+cd libs
+mv /path/to/libreadline readline-src
+mv /path/to/libncurses ncurses-src
+cd readline-src
+./configure --prefix=../readline CC=musl-gcc && make -kj$(nproc) && make install-static
+cd ../ncurses-src
+./configure --prefix=../ncurses CC=musl-gcc && make -kj$(nproc) && make install
+cd ../..
+make static-deb
+```
+
+It should compile succesfully; When compiling `static-deb` with `make`, the output should look like this:
+
+```bash
+[STATIC DEBUG]
+gcc: warning: ./libs/readline/lib/libreadline.a: linker input file unused because linking not done
+gcc: warning: ./libs/ncurses/lib/libncurses.a: linker input file unused because linking not done
+CC calc.c
+CC calc-debstatic.o
+```
+
+## Why was this written?
 This was written because I was tired of using the slow Python as a command-line calculator.
 
 I wanted something fast, that I could modify whenever I wanted to.

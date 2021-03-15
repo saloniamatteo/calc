@@ -4,12 +4,12 @@
 #CC = aarch64-linux-gnu-gcc
 
 # Normal compiler
-#CC = gcc
+CC = gcc
 
 # Statically linked builds must be made using musl-gcc,
 # because the static libraries (readline, ncurses) do not
 # work with glibc
-CC = musl-gcc
+#CC = musl-gcc
 
 # Linker flags used for Dynamic linking
 LDFLAGS = -lreadline -lm
