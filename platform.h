@@ -5,6 +5,12 @@
  * as well as ARCH_x86 = x86, if ARCH is x86 or x86_64,
  * and ARCH_ARM = ARM, if ARCH is under the ARM family.
  *
+ * Additionally, 3 more variables are defined, with the
+ * following conditions:
+ * 	- OS_WIN32: OS is Windows
+ * 	- OS_UNIX: OS is Unix/Unix-like
+ * 	- OS_UNK: OS is Unknown
+ *
  * Made by Salonia Matteo <saloniamatteo@pm.me>
  * Part of SMCLib.
  *

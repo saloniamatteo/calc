@@ -26,7 +26,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 /* Calc version */
-#define __CALC_VERSION 1.5
+#define __CALC_VERSION 1.7
 
 /* Magic number that lets us check if the operator number is valid */
 /* NOTE: if Calc returns the first number, even when the operator and
@@ -63,6 +63,7 @@
 #define DEBUG 1
 #endif
 
+/* Check which OS is being used, and define OS accordingly */
 #ifdef OS_WIN32
 #define OS "Win32"
 #elif defined OS_UNIX
