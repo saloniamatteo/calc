@@ -1,3 +1,5 @@
 calc
 *.o
 libs
+cscope.*
+tags

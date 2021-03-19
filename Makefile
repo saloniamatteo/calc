@@ -81,7 +81,15 @@ calc-debstatic.o: calc.c color.h platform.h optimizations.h compiler.h
 	@$(STATIC_CC) -c $< -o $@ -DDEBUG=1 -DSTATIC_BUILD=1 --static $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(INCLUDE_PATHS) $(LDFLAGS_STATIC)
 	@echo "CC $<"
 
-clean:
-	rm -f *.o calc
+# Generate tags with cscope and ctags
+gentags:
+	@echo "Generating tags..."
+	$(shell cscope -bkq)
+	$(shell find . -type f -name "*.[chsS]" -print > cscope.files)
+	$(shell ctags -L cscope.files)
+	@echo "Done! "
 
-.PHONY = clean deb debug rel release static-deb static-debug
+clean:
+	rm -f *.o calc cscope* tags
+
+.PHONY = clean deb debug gentags rel release static-deb static-debug

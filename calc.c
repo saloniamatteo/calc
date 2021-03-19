@@ -22,6 +22,9 @@
 #include "optimizations.h"
 #include "compiler.h"
 
+/* Perform stricter security checks */
+#define _FORTIFY_SOURCE 2
+
 /* Use POSIX.1-2008 */
 #define _POSIX_C_SOURCE 200809L
 
@@ -312,7 +315,7 @@ parseInput(char *input)
 	/* Print this program's help */
 	} else if (!strcasecmp(input, "help"))
 		printHelp();
-	
+
 	/* Print available operands */
 	else if ((!strcasecmp(input, "operands") || !strcasecmp(input, "ops")) && justcalc != 1)
 		printOps();
@@ -346,7 +349,7 @@ parseInput(char *input)
 		int i = 0;
 		char *array[5], *token = strtok(input, " ");
 		double first = 0, second = 0;
-	
+
 		/* Save items to array */
 		while (token != NULL) {
 			array[i++] = token;
@@ -429,17 +432,19 @@ printHelp(void)
 
 	/* Show program compilation info */
 	if (showcmp != 0 && justcalc != 1)
-		printf("Compiled on %s at %s %s, using compiler %s, targeting platform %s, operating system %s.\n", __DATE__, __TIME__, OPTS, CC, ARCH, OS);
+		printf("Compiled on %s at %s %s, "
+			"using compiler %s, targeting platform %s, "
+			"operating system %s.\n", __DATE__, __TIME__, OPTS, CC, ARCH, OS);
 
 	/* Show flags */
 	if (showflags != 0 && justcalc != 1)
-		printf("Flag order: [cefmnh]\nFlags:\n\
-%s \t| %s \tEnter \"just-calculator\" mode\n\
-%s \t| %s \tDon't show examples\n\
-%s \t| %s \tDon't show these flags\n\
-%s \t\t| %s \tShow this help\n\
-%s \t| %s \tDon't show program compilation info\n\
-%s \t| %s \tDon't color the output\n",
+		printf("Flag order: [cefmnh]\nFlags:\n"
+		"%s \t| %s \tEnter \"just-calculator\" mode\n"
+		"%s \t| %s \tDon't show examples\n"
+		"%s \t| %s \tDon't show these flags\n"
+		"%s \t\t| %s \tShow this help\n"
+		"%s \t| %s \tDon't show program compilation info\n"
+		"%s \t| %s \tDon't color the output\n",
 color_rvid("--just-calc"), color_rvid("-c"),
 color_rvid("--no-examples"), color_rvid("-e"),
 color_rvid("--no-flags"), color_rvid("-f"),
@@ -460,15 +465,15 @@ color_rvid("--no-color"), color_rvid("-n"));
 
 	/* Show examples */
 	if (showsamp != 0 && justcalc != 1)
-		printf("Examples:\n\
-%s\n\
-1 + 1\t\t1 p 1\t\tAddition\tReturns 2\n\
-1 - 1\t\t1 s 1\t\tSubtraction\tReturns 0\n\
-2 * 2\t\t2 t 2\t\tMultiplication\tReturns 4\n\
-4 / 2\t\t4 d 2\t\tDivision\tReturns 2\n\
-4 %% 2\t\t4 m 2\t\tModulus\t\tReturns 0\n\
-1 < 16\t\t1 l 16\t\tBit-shifting\tReturns 65536\n\
-4096 > 1\t4096 r 1\tBit-shifting\tReturns 2048\n",
+		printf("Examples:\n"
+			"%s\n"
+			"1 + 1\t\t1 p 1\t\tAddition\tReturns 2\n"
+			"1 - 1\t\t1 s 1\t\tSubtraction\tReturns 0\n"
+			"2 * 2\t\t2 t 2\t\tMultiplication\tReturns 4\n"
+			"4 / 2\t\t4 d 2\t\tDivision\tReturns 2\n"
+			"4 %% 2\t\t4 m 2\t\tModulus\t\tReturns 0\n"
+			"1 < 16\t\t1 l 16\t\tBit-shifting\tReturns 65536\n"
+			"4096 > 1\t4096 r 1\tBit-shifting\tReturns 2048\n",
 color_bu("[Cmd]\t\t[Alt sign]\t[Description]\t[Result]"));
 }
 
@@ -476,15 +481,15 @@ color_bu("[Cmd]\t\t[Alt sign]\t[Description]\t[Result]"));
 void
 printOps(void)
 {
-	printf("Available operands:\n\
-%s Can be written as %s\n\
-+\t\t\t\tp\n\
--\t\t\t\ts\n\
-*\t\t\t\tt\n\
-/\t\t\t\td\n\
-%%\t\t\t\tm\n\
-<\t\t\t\tl\n\
->\t\t\t\tr\n",
+	printf("Available operands:\n"
+		"%s Can be written as %s\n"
+		"+\t\t\t\tp\n"
+		"-\t\t\t\ts\n"
+		"*\t\t\t\tt\n"
+		"/\t\t\t\td\n"
+		"%%\t\t\t\tm\n"
+		"<\t\t\t\tl\n"
+		">\t\t\t\tr\n",
 color_bu("[Symbol]"), color_bu("[Latin letter]"));
 }
 
@@ -492,16 +497,16 @@ color_bu("[Symbol]"), color_bu("[Latin letter]"));
 void
 printSpecVals(void)
 {
-	printf("Special values: you can type these words to automatically get their value.\n\
-%s These are case insensitive, so you can type them in all lowercase, uppercase, etc.\n\
-%s\t%s\n\
-pi\t\tThe value of Pi\n\
-pi2\t\tPi / 2\n\
-pi4\t\tPi / 4\n\
-1pi\t\t1 / Pi\n\
-2pi\t\t2 / Pi\n\
-pisq\t\tPi * Pi\n\
-e\t\tThe value of e\n",
+	printf("Special values: you can type these words to automatically get their value.\n"
+		"%s These are case insensitive, so you can type them in all lowercase, uppercase, etc.\n"
+		"%s\t%s\n"
+		"pi\t\tThe value of Pi\n"
+		"pi2\t\tPi / 2\n"
+		"pi4\t\tPi / 4\n"
+		"1pi\t\t1 / Pi\n"
+		"2pi\t\t2 / Pi\n"
+		"pisq\t\tPi * Pi\n"
+		"e\t\tThe value of e\n",
 color_bu("NOTE:"), color_bu("[Symbol]"), color_bu("[Description]"));
 }
 
@@ -533,3 +538,4 @@ sigHandler(int sigNum)
 
 	exit(0);
 }
+
