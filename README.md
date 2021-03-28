@@ -23,6 +23,7 @@ Currently, `calc` supports the following commands:
 | `operands`   | Print list of operands                  |
 | `ops`        | Print list of operands                  |
 | `quit`       | Close this program                      |
+| `rpn`        | Enter [RPN mode](#RPN-mode)             |
 | `specvals`   | Print [Special Values](#Special-Values) |
 
 [1]: the `calc` command is only available outside of just-calculator mode, and
@@ -31,14 +32,15 @@ the `nocalc` command is only available inside just-calculator mode.
 ## Flags
 Currently, `calc` supports the following command-line flags:
 
-| Flag | Description                      |
-|------|----------------------------------|
-| `-c` | Enter just-calculator mode       |
-| `-e` | Disable examples in help section |
-| `-f` | Disable flags in help section    |
-| `-h` | Print help and exit              |
-| `-m` | Disable program compilation info |
-| `-n` | Disable colored output           |
+| Flag | Long Flag       | Description                      |
+|------|-----------------|----------------------------------|
+| `-c` | `--calc`        | Enter just-calculator mode       |
+| `-e` | `--no-examples` | Disable examples in help section |
+| `-f` | `--no-flags`    | Disable flags in help section    |
+| `-h` | `--help`        | Print help and exit              |
+| `-m` | `--no-cmp`      | Disable program compilation info |
+| `-n` | `--no-color`    | Disable colored output           |
+| `-r` | `--rpn`         | Enter [RPN mode](#RPN-mode)      |
 
 NOTE: Flag order matters! ([cefmnh])
 
@@ -55,6 +57,27 @@ NOTE: Flag order matters! ([cefmnh])
 | `4096 > 1` | `4096 r 4`        | Bit-shifting (right) | Returns 2048  |
 
 *(See bit-shifting info [here](#Bit-Shifting))*
+
+## RPN mode
+`calc` includes a Reverse Polish Notation (RPN) mode, which you can access with
+the `-r` and `--rpn` flags, as well as the `rpm` command.
+
+In RPN, the following equation
+
+```
+((1 + 2) + (3 - 4)) * 2
+```
+
+would be written as
+
+```
+1 2 + 3 4 - + 2 *
+```
+
+giving the user the ability to write more complex equations, without the
+difficulty of parsing parentheses.
+
+At the time of writing, the special values are not yet implemented in this mode.
 
 ## Special Values
 You can (optionally) use Special Values, thanks to the `<math.h>` library.
