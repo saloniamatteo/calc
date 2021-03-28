@@ -21,6 +21,7 @@
 #include "platform.h"
 #include "optimizations.h"
 #include "compiler.h"
+#include "rpn.c"
 
 /* Perform stricter security checks */
 #define _FORTIFY_SOURCE 2
@@ -29,7 +30,9 @@
 #define _POSIX_C_SOURCE 200809L
 
 /* Calc version */
-#define __CALC_VERSION 1.7
+#define __CALC_VERSION_MAJOR "1"
+#define __CALC_VERSION_MINOR "8"
+#define __CALC_VERSION __CALC_VERSION_MAJOR "." __CALC_VERSION_MINOR
 
 /* Magic number that lets us check if the operator number is valid */
 /* NOTE: if Calc returns the first number, even when the operator and
@@ -40,7 +43,10 @@
 	#ifdef OS_WIN32
 		#define __CALC_OPVAL 99
 	#else
-		#define __CALC_OPVAL 0x1400000000000
+		/* TODO: get rid of OpVal; Tested CPUs: */
+		/* Intel Core i5-4340M  (2C4T) = 0x1400000000000 */
+		/* Intel Core i7-4700MQ (4C8T) = 0x2000000000000 */
+		#define __CALC_OPVAL 0x2000000000000
 	#endif
 	#define ARCHNUM 1
 	#elif defined ARCH_ARM
@@ -48,8 +54,7 @@
 	#define ARCHNUM 2
 	#endif
 #else
-	#warning "Architecture is unknown!"
-	#warning "Using default x86 value for __CALC_OPVAL (0x1400000000000)"
+	#warning "Architecture is unknown! Using default x86 value for __CALC_OPVAL (0x1400000000000)"
 	#define __CALC_OPVAL 0x1400000000000
 #endif
 
@@ -66,6 +71,11 @@
 #define DEBUG 1
 #endif
 
+/* Allow debugging Opval? (Default: no (0), set to 1 to enable */
+#ifndef DEBUG_OPVAL
+#define DEBUG_OPVAL 0
+#endif
+
 /* Check which OS is being used, and define OS accordingly */
 #ifdef OS_WIN32
 #define OS "Win32"
@@ -76,13 +86,13 @@
 #endif
 
 /* Function prototypes */
-void calculate(double first, char *operand, double second);
+void calculate(double, char *, double);
 void clearScr(void);
-void parseInput(char *input);
+void parseInput(char *);
 void printHelp(void);
 void printOps(void);
 void printSpecVals(void);
-void sigHandler(int sigNum);
+void sigHandler(int);
 
 /* Define "long unsigned int" as uint64_ct */
 typedef long unsigned int uint64_ct;
@@ -113,15 +123,16 @@ main(int argc, char **argv)
 		{"just-calc", no_argument, 0, 'c'},
 		{"no-examples", no_argument, 0, 'e'},
 		{"no-flags", no_argument, 0, 'f'},
+		{"help", no_argument, 0, 'h'},
 		{"no-cmp", no_argument, 0, 'm'},
 		{"no-color", no_argument, 0, 'n'},
-		{"help", no_argument, 0, 'h'}
+	 	{"rpn", no_argument, 0, 'r'},
 	};
 
 	int optind = 0;
 
 	/* Check if flags have been passed */
-	while ((optind = getopt_long(argc, argv, ":cefmnh", longopts, &optind)) != 1) {
+	while ((optind = getopt_long(argc, argv, ":cefhmnr", longopts, &optind)) != 1) {
 		switch (optind) {
 
 		/* Enter "just-calculator" mode */
@@ -142,6 +153,12 @@ main(int argc, char **argv)
 			fprintf(stderr, "[Disabled flags]\n");
 			break;
 
+		/* Print help and exit */
+		case '?': case 'h':
+			printHelp();
+			return 0;
+			break;
+
 		/* Don't show program compilation info */
 		case 'm':
 			showcmp = 0;
@@ -154,11 +171,12 @@ main(int argc, char **argv)
 			fprintf(stderr, "[Disabled colored output]\n");
 			break;
 
-		/* Print help and exit */
-		case '?': case 'h':
-			printHelp();
-			return 0;
+		/* Enter rpn mode */
+		case 'r':
+			fprintf(stderr, "[Entered RPN mode (exit with CTRL+D)]\n");
+			rpnInit();
 			break;
+
 		}
 
 		if (optind <= 0)
@@ -187,9 +205,8 @@ main(int argc, char **argv)
 		/* Parse the input */
 		parseInput(input);
 
-		/* Set variables to 0 */
-		memset(input, 0, sizeof(*input));
-		memset(&optind, 0, sizeof(optind));
+		/* Free input */
+		free(input);
 	}
 
 	/* If this point is somehow reached, exit gracefully */
@@ -284,18 +301,35 @@ parseInput(char *input)
 		fprintf(stderr, "Just-Calculator Mode: %d (yes: 1, no: 0)\n", justcalc);
 
 		/* Print architecture, compiler, date & time info */
-		fprintf(stderr, "Architecture, Compiler, Date & Time.\n");
-		fprintf(stderr, "ARCH: %s\nARCHNUM: %d (%s)\nCC: %s %s\nDATE: %s\nTIME: %s\n\n", ARCH, ARCHNUM, archNumStr, CC, OPTS, __DATE__, __TIME__);
+		fprintf(stderr, "Architecture, Compiler, Date & Time.\n"
+				"ARCH: %s\n"
+				"ARCHNUM: %d (%s)\n"
+				"CC: %s %s\n"
+				"DATE: %s\n"
+				"TIME: %s\n\n",
+			ARCH, ARCHNUM, archNumStr, CC, OPTS, __DATE__, __TIME__);
 
 		/* Print the size of data types */
-		fprintf(stderr, "Data Type Size.\n");
-		fprintf(stderr, "(char) size: %ld, (char *) size: %ld\n(int) size: %ld, (int *) size: %ld\n\n",
-				sizeof(char), sizeof(char *), sizeof(int), sizeof(int *));
+		fprintf(stderr, "Data Type Size.\n"
+				"(char) size: %ld\n"
+				"(char *) size: %ld\n"
+				"(int) size: %ld\n"
+				"(int *) size: %ld\n\n",
+			sizeof(char), sizeof(char *), sizeof(int), sizeof(int *));
 
-		/* Print POSIX C source, last modify date, opval */
-		fprintf(stderr, "Miscellaneous.\n");
-		fprintf(stderr, "POSIX C Source: %ld\nCalc version: %.1f\nOpVal: 0x%lX (%lu)\n",
-				_POSIX_C_SOURCE, __CALC_VERSION, __CALC_OPVAL, __CALC_OPVAL);
+		/* Print POSIX C source, last modify date */
+		fprintf(stderr, "Miscellaneous.\n"
+				"POSIX C Source: %ld\n"
+				"Calc version (Major): %s\n"
+				"Calc version (Minor): %s\n"
+				"Calc version (Full): %s\n\n",
+			_POSIX_C_SOURCE, __CALC_VERSION_MAJOR, __CALC_VERSION_MINOR, __CALC_VERSION);
+
+		/* Print opval */
+		fprintf(stderr, "Opval.\n"
+				"Hex:\t\t%#lx\n"
+				"Decimal:\t%ld\n",
+			__CALC_OPVAL, __CALC_OPVAL);
 	#endif
 
 	/* Exit without errors */
@@ -339,6 +373,10 @@ parseInput(char *input)
 	} else if (!strcasecmp(input, "noflags") && justcalc != 1) {
 		showflags = 0;
 		fprintf(stderr, "[Disabled flags]\n");
+
+	} else if (!strcasecmp(input, "rpn")) {
+		fprintf(stderr, "[Entered RPN mode (exit with CTRL+D)]\n");
+		rpnInit();
 
 	/* Print special values */
 	} else if (!strcasecmp(input, "specvals") && justcalc != 1)
@@ -394,9 +432,14 @@ parseInput(char *input)
 			second = atof(array[2]);
 
 		/* Store operand in a single character */
-		char operand[1];
+		char operand[2];
+
 		/* Convert operand value to long unsigned int */
 		uint64_ct opnum = (uint64_ct)array[1];
+
+		#if DEBUG_OPVAL != 0
+		fprintf(stderr, "[DEBUG] Opval: %ld, %#lx\n", __CALC_OPVAL, __CALC_OPVAL);
+		#endif
 
 		/* Check if operand exists, using a magic number (this somehow works) */
 		#ifdef ARCH_ARM
@@ -404,7 +447,7 @@ parseInput(char *input)
 		#else
 		if (opnum < __CALC_OPVAL) {
 		#endif
-			strcpy(operand, array[1]);
+			strncpy(operand, array[1], 1);
 			calculate(first, operand, second);
 		} else {
 			/* Operand does not exist, print only the first number (10 decimal places) */
@@ -428,7 +471,7 @@ parseInput(char *input)
 void
 printHelp(void)
 {
-	printf("Basic Calculator by Salonia Matteo, made on 25/01/2021, version %.1f\n", __CALC_VERSION);
+	printf("Basic Calculator by Salonia Matteo, made on 25/01/2021, version %s\n", __CALC_VERSION);
 
 	/* Show program compilation info */
 	if (showcmp != 0 && justcalc != 1)
@@ -438,30 +481,33 @@ printHelp(void)
 
 	/* Show flags */
 	if (showflags != 0 && justcalc != 1)
-		printf("Flag order: [cefmnh]\nFlags:\n"
+		printf("Flags:\n"
 		"%s \t| %s \tEnter \"just-calculator\" mode\n"
 		"%s \t| %s \tDon't show examples\n"
 		"%s \t| %s \tDon't show these flags\n"
 		"%s \t\t| %s \tShow this help\n"
 		"%s \t| %s \tDon't show program compilation info\n"
-		"%s \t| %s \tDon't color the output\n",
+		"%s \t| %s \tDon't color the output\n"
+		"%s \t\t| %s \tEnter \"RPN\" mode (Reverse Polish Notation)\n",
 color_rvid("--just-calc"), color_rvid("-c"),
 color_rvid("--no-examples"), color_rvid("-e"),
 color_rvid("--no-flags"), color_rvid("-f"),
 color_rvid("--help"), color_rvid("-h"),
 color_rvid("--no-cmp"), color_rvid("-m"),
-color_rvid("--no-color"), color_rvid("-n"));
+color_rvid("--no-color"), color_rvid("-n"),
+color_rvid("--rpn"), color_rvid("-r"));
 
 	/* If we are in just-calculator mode, print reduced command list */
 	if (justcalc != 1)
-		printf("\nAvailable commands: %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s (or %s), %s, %s.\n",
+		printf("\nAvailable commands: %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s (or %s), %s, %s, %s.\n",
 			color_rvid("calc"), color_rvid("clear"), color_rvid("color"), color_rvid("examples"),
 			color_rvid("exit"), color_rvid("flags"), color_rvid("help"),
 			color_rvid("nocolor"), color_rvid("noexamples"), color_rvid("noflags"),
-			color_rvid("operands"), color_rvid("ops"), color_rvid("quit"), color_rvid("specvals"));
+			color_rvid("operands"), color_rvid("ops"), color_rvid("quit"),
+			color_rvid("rpn"), color_rvid("specvals"));
 	else
-		printf("\n(Just-calculator mode)\nAvailable commands: %s, %s, %s, %s, %s.\n",
-			color_rvid("clear"), color_rvid("exit"), color_rvid("help"), color_rvid("quit"), color_rvid("nocalc"));
+		printf("\n(Just-calculator mode)\nAvailable commands: %s, %s, %s, %s, %s, %s.\n",
+			color_rvid("clear"), color_rvid("exit"), color_rvid("help"), color_rvid("quit"), color_rvid("nocalc"), color_rvid("rpn"));
 
 	/* Show examples */
 	if (showsamp != 0 && justcalc != 1)
@@ -532,7 +578,7 @@ sigHandler(int sigNum)
 	/* Set variable to 0 */
 	memset(&sigNum, 0, sizeof(sigNum));
 
-	/* Free "coloredStr" to prevent memory leaks */
+	/* Free allocated memory to prevent memory leaks */
 	if (_free_color() != 0)
 		fprintf(stderr, "WARNING! Failed to free coloredStr!\n");
 

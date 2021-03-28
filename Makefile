@@ -52,7 +52,7 @@ release: calc-rel.o
 	@$(CC) $^ -o calc -DDEBUG=0 $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(CSTD) $(LDFLAGS)
 	@echo "CC $<"
 
-calc-rel.o: calc.c color.h platform.h optimizations.h compiler.h
+calc-rel.o: calc.c color.h platform.h optimizations.h compiler.h rpn.c
 	@echo "[RELEASE]"
 	@$(CC) -c $< -o $@ -DDEBUG=0 $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE)
 	@echo "CC $<"
@@ -64,7 +64,7 @@ debug: calc-debug.o
 	@$(CC) $^ -o calc $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(CSTD) $(LDFLAGS)
 	@echo "CC $<"
 
-calc-debug.o: calc.c color.h platform.h optimizations.h compiler.h
+calc-debug.o: calc.c color.h platform.h optimizations.h compiler.h rpn.c
 	@echo "[DEBUG]"
 	@$(CC) -c $< -o $@ $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE)
 	@echo "CC $<"
@@ -76,7 +76,7 @@ static-debug: calc-debstatic.o
 	@$(STATIC_CC) $^ -o calc -DDEBUG=1 -DSTATIC_BUILD=1 --static $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(CSTD) $(INCLUDE_PATHS) $(LDFLAGS_STATIC)
 	@echo "CC $<"
 
-calc-debstatic.o: calc.c color.h platform.h optimizations.h compiler.h
+calc-debstatic.o: calc.c color.h platform.h optimizations.h compiler.h rpn.c
 	@echo "[STATIC DEBUG]"
 	@$(STATIC_CC) -c $< -o $@ -DDEBUG=1 -DSTATIC_BUILD=1 --static $(CFLAGS) $(OPTS) $(LINKER) $(ARCH) $(TUNE) $(INCLUDE_PATHS) $(LDFLAGS_STATIC)
 	@echo "CC $<"
