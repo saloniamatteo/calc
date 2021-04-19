@@ -31,7 +31,7 @@
 
 /* Calc version */
 #define __CALC_VERSION_MAJOR "1"
-#define __CALC_VERSION_MINOR "8"
+#define __CALC_VERSION_MINOR "9"
 #define __CALC_VERSION __CALC_VERSION_MAJOR "." __CALC_VERSION_MINOR
 
 /* Magic number that lets us check if the operator number is valid */
@@ -97,27 +97,37 @@ void sigHandler(int);
 /* Define "long unsigned int" as uint64_ct */
 typedef long unsigned int uint64_ct;
 
-/* Define "short unsigned int" as uint8_ct */
-typedef short unsigned int uint8_ct;
+/* Flags */
+enum calc_flags {
+	usecolor = 1 << 0,	/* Print colored output? (Default: yes) */
+	showcmp = 1 << 1,	/* Print compilation info? (Default: yes) */
+	showflags = 1 << 2,	/* Print program flags? (Default: yes) */
+	showsamp = 1 << 3,	/* Print examples? (Default: yes) */
+	justcalc = 1 << 4,	/* Enter just-calculator mode? (Default: no (0); yes (1)) */
+};
 
-/* Print colored output? (Default: yes (1); no (0)) */
-uint8_ct usecolor = 1;
-
-/* Print compilation info? (Default: yes (1); no (0)) */
-uint8_ct showcmp = 1;
-
-/* Print program flags? (Default: yes (1); no (0)) */
-uint8_ct showflags = 1;
-
-/* Print examples? (Default: yes (1); no (0)) */
-uint8_ct showsamp = 1;
-
-/* Enter just-calculator mode? (Default: no (0); yes (1)) */
-uint8_ct justcalc = 0;
+/* This variable will hold the flags */
+unsigned short int flags = 0;
 
 int
 main(int argc, char **argv)
 {
+	/* Initialise flags */
+	/* Print colored output? (Default: yes) */
+	flags |= usecolor;
+
+	/* Print compilation info? (Default: yes) */
+	flags |= showcmp;
+
+	/* Print program flags? (Default: yes) */
+	flags |= showflags;
+
+	/* Print examples? (Default: yes) */
+	flags |= showsamp;
+
+	/* Enter just-calculator mode? (Default: no (0); yes (1)) */
+	flags &= ~justcalc;
+
 	/* Struct containing program options/flags */
 	static struct option longopts[] = {
 		{"just-calc", no_argument, 0, 'c'},
@@ -137,19 +147,20 @@ main(int argc, char **argv)
 
 		/* Enter "just-calculator" mode */
 		case 'c':
-			justcalc = 1;
+			flags |= justcalc;
+			flags &= ~usecolor;
 			fprintf(stderr, "[Enabled just-calculator mode]\n");
 			break;
 
 		/* Don't show examples when printing help */
 		case 'e':
-			showsamp = 0;
+			flags &= ~showsamp;
 			fprintf(stderr, "[Disabled examples]\n");
 			break;
 
 		/* Don't show flags when printing help */
 		case 'f':
-			showflags = 0;
+			flags &= ~showflags;
 			fprintf(stderr, "[Disabled flags]\n");
 			break;
 
@@ -161,13 +172,13 @@ main(int argc, char **argv)
 
 		/* Don't show program compilation info */
 		case 'm':
-			showcmp = 0;
+			flags &= ~showcmp;
 			fprintf(stderr, "[Disabled compilation info]\n");
 			break;
 
 		/* Disable colored output */
 		case 'n':
-			usecolor = 0;
+			flags &= ~usecolor;
 			fprintf(stderr, "[Disabled colored output]\n");
 			break;
 
@@ -176,7 +187,6 @@ main(int argc, char **argv)
 			fprintf(stderr, "[Entered RPN mode (exit with CTRL+D)]\n");
 			rpnInit();
 			break;
-
 		}
 
 		if (optind <= 0)
@@ -200,7 +210,11 @@ main(int argc, char **argv)
 		signal(SIGTERM, sigHandler);
 
 		/* Ask user input */
-		char *input = readline("\e[1;4mcalc>\e[0m ");
+		char *input;
+		if ((flags & usecolor) != 0)
+			input = readline("\e[1;4mcalc>\e[0m ");
+		else
+			input = readline("calc>\e[0m ");
 
 		/* Parse the input */
 		parseInput(input);
@@ -217,11 +231,12 @@ main(int argc, char **argv)
 void
 calculate(double first, char *operand, double second)
 {
-	/* Make the output bold, if we are using colors */
-	if (usecolor != 0 && justcalc != 1)
+	/* Make the output bold, if we are using colors,
+	 * and if we aren't in just-calc mode */
+	if ((flags & usecolor) != 0 && !(flags & justcalc))
 		printf("\e[1m");
 
-	/* Check the operand */
+	/* Check the operand and print the result */
 	switch (operand[0]) {
 	case '+': case 'p':
 		printf("%.10f\n", first + second);
@@ -248,8 +263,9 @@ calculate(double first, char *operand, double second)
 		printf("Unknown operand \"%s\"\n", operand);
 	}
 
-	/* Back to normal (if using colors) */
-	if (usecolor != 0 && justcalc != 1)
+	/* Reset the colors, if we are using them,
+	 * and if we aren't in just-calc mode */
+	if ((flags & usecolor) != 0 && !(flags & justcalc))
 		printf("\e[0m");
 }
 
@@ -259,46 +275,51 @@ clearScr(void)
 {
 	/* Run "clear" if the user is using Unix/a Unix-Like OS */
 	#ifdef __unix__
-	system("clear");
+	int sysretval = system("clear");
 
 	/* Run "cls" if the user is using windows */
 	#elif defined _MSC_VER
-	system("cls");
+	int sysretval = system("cls");
 	#endif
+
+	/* Check if command above failed */
+	if (sysretval == -1)
+		fprintf(stderr, "Warning: unable to clear screen!\n");
 }
 
 /* Parse user input */
 void
 parseInput(char *input)
 {
-	/* Enter just-calculator mode */
-	if (!strcasecmp(input, "calc") && justcalc != 1) {
-		justcalc = 1;
+	/* Enter just-calculator mode, if we aren't already inside */
+	if (!strcasecmp(input, "calc") && !(flags & justcalc)) {
+		flags |= justcalc;
 		fprintf(stderr, "[Entered just-calculator mode]\n");
 
 	/* Clear the screen */
 	} else if (!strcasecmp(input, "clear"))
 		clearScr();
 
-	/* Enable color */
-	else if (!strcasecmp(input, "color") && justcalc != 1) {
-		usecolor = 1;
+	/* Enable colors, if we aren't in just-calc mode */
+	else if (!strcasecmp(input, "color") && !(flags & justcalc)) {
+		flags |= usecolor;
 		fprintf(stderr, "[Enabled color]\n");
 
 	#if DEBUG != 0
-	/* Debug info (hidden) */
+	/* Debug info (hidden if DEBUG macro is not 0) */
 	} else if (!strcasecmp(input, "debug")) {
 		char archNumStr[10];
 
 		if (ARCHNUM == 1)
-			strcpy(archNumStr, "x86");
+			strncpy(archNumStr, "x86", 4);
 		else if (ARCHNUM == 2)
-			strcpy(archNumStr, "ARM");
+			strncpy(archNumStr, "ARM", 4);
 		else
-			strcpy(archNumStr, "Unknown");
+			strncpy(archNumStr, "Unknown", 8);
 
 		/* Firstly, print if we are in just-calculator mode */
-		fprintf(stderr, "Just-Calculator Mode: %d (yes: 1, no: 0)\n", justcalc);
+		fprintf(stderr, "Just-Calculator Mode: %d (yes: 1, no: 0)\n",
+				(!(flags & justcalc) ? 0 : 1));
 
 		/* Print architecture, compiler, date & time info */
 		fprintf(stderr, "Architecture, Compiler, Date & Time.\n"
@@ -336,50 +357,57 @@ parseInput(char *input)
 	} else if (!strcasecmp(input, "exit") || !strcasecmp(input, "quit"))
 		exit(0);
 
-	/* Enable examples in help section */
-	else if (!strcasecmp(input, "examples") && justcalc != 1) {
-		showsamp = 1;
+	/* Enable examples in help section,
+	 * if we aren't in just-calc mode */
+	else if (!strcasecmp(input, "examples") && !(flags & justcalc)) {
+		flags |= showsamp;
 		fprintf(stderr, "[Enabled examples]\n");
 
-	/* Show flags */
-	} else if (!strcasecmp(input, "flags") && justcalc != 1) {
-		showflags = 1;
+	/* Show flags, if we aren't in just-calc mode */
+	} else if (!strcasecmp(input, "flags") && !(flags & justcalc)) {
+		flags |= showflags;
 		fprintf(stderr, "[Enabled flags]\n");
 
 	/* Print this program's help */
 	} else if (!strcasecmp(input, "help"))
 		printHelp();
 
-	/* Print available operands */
-	else if ((!strcasecmp(input, "operands") || !strcasecmp(input, "ops")) && justcalc != 1)
+	/* Print available operands,
+	 * if we aren't in just-calc mode */
+	else if ((!strcasecmp(input, "operands") || !strcasecmp(input, "ops")) && !(flags & justcalc))
 		printOps();
 
-	/* Exit out of just-calculator mode */
-	else if (!strcasecmp(input, "nocalc") && justcalc != 0) {
-		justcalc = 0;
+	/* Exit out of just-calculator mode, if we're inside */
+	else if (!strcasecmp(input, "nocalc") && ((flags & justcalc) != 0)) {
+		flags &= ~justcalc;
 		fprintf(stderr, "[Disabled just-calculator mode]\n");
 
-	/* Disable color */
-	} else if (!strcasecmp(input, "nocolor") && justcalc != 1) {
-		usecolor = 0;
+	/* Disable color, if we
+	 * aren't in just-calc mode */
+	} else if (!strcasecmp(input, "nocolor") && !(flags & justcalc)) {
+		flags &= ~usecolor;
 		fprintf(stderr, "[Disabled color]\n");
 
-	/* Don't show examples */
-	} else if (!strcasecmp(input, "noexamples") && justcalc != 1) {
-		showsamp = 0;
+	/* Don't show examples, if we
+	 * aren't in just-calc mode */
+	} else if (!strcasecmp(input, "noexamples") && !(flags & justcalc)) {
+		flags &= ~showsamp;
 		fprintf(stderr, "[Disabled examples]\n");
 
-	/* Don't show flags */
-	} else if (!strcasecmp(input, "noflags") && justcalc != 1) {
-		showflags = 0;
+	/* Don't show flags, if we
+	 * aren't in just-calc mode */
+	} else if (!strcasecmp(input, "noflags") && !(flags & justcalc)) {
+		flags &= ~showflags;
 		fprintf(stderr, "[Disabled flags]\n");
 
+	/* Enter RPN mode, regardless of our mode */
 	} else if (!strcasecmp(input, "rpn")) {
 		fprintf(stderr, "[Entered RPN mode (exit with CTRL+D)]\n");
 		rpnInit();
 
-	/* Print special values */
-	} else if (!strcasecmp(input, "specvals") && justcalc != 1)
+	/* Print special values, if we
+	 * aren't in just-calc mode */
+	} else if (!strcasecmp(input, "specvals") && !(flags & justcalc))
 		printSpecVals();
 
 	else {
@@ -393,7 +421,6 @@ parseInput(char *input)
 			array[i++] = token;
 			token = strtok(NULL, " ");
 		}
-		/* End TODO */
 
 		/* Assign array items to variables */
 		/* Special values: pi, pi2, pi4, 1pi, 2pi, pisq, e */
@@ -451,11 +478,12 @@ parseInput(char *input)
 			calculate(first, operand, second);
 		} else {
 			/* Operand does not exist, print only the first number (10 decimal places) */
-			if (usecolor != 0 && justcalc != 1)
+			if ((flags & usecolor) != 0 && !(flags & justcalc))
 				printf("\e[1m%.10f\e[0m\n", first);
 			else
 				printf("%.10f\n", first);
 		}
+		/* End TODO */
 
 	/* Set variables to 0 */
 	memset(array, 0, sizeof(*array));
@@ -471,16 +499,20 @@ parseInput(char *input)
 void
 printHelp(void)
 {
+	/* Print program info */
 	printf("Basic Calculator by Salonia Matteo, made on 25/01/2021, version %s\n", __CALC_VERSION);
 
-	/* Show program compilation info */
-	if (showcmp != 0 && justcalc != 1)
+	/* Show program compilation info,
+	 * if we aren't in just-calc mode */
+	if ((flags & showcmp) != 0 && !(flags & justcalc)) {
 		printf("Compiled on %s at %s %s, "
 			"using compiler %s, targeting platform %s, "
 			"operating system %s.\n", __DATE__, __TIME__, OPTS, CC, ARCH, OS);
+	}
 
-	/* Show flags */
-	if (showflags != 0 && justcalc != 1)
+	/* Show flags using color, if color is enabled, flags
+	 * are enabled, and we aren't in just-calc mode */
+	if ((flags & (showflags | usecolor)) == (showflags | usecolor) && !(flags & justcalc)) {
 		printf("Flags:\n"
 		"%s \t| %s \tEnter \"just-calculator\" mode\n"
 		"%s \t| %s \tDon't show examples\n"
@@ -497,20 +529,45 @@ color_rvid("--no-cmp"), color_rvid("-m"),
 color_rvid("--no-color"), color_rvid("-n"),
 color_rvid("--rpn"), color_rvid("-r"));
 
-	/* If we are in just-calculator mode, print reduced command list */
-	if (justcalc != 1)
+	/* Show flags without colors, if color is disabled, flags
+	 * are enabled, and we aren't in just-calc mode */
+	} else if ((flags & showflags) != 0 && !(flags & usecolor) && !(flags & justcalc)) {
+		printf("Flags:\n"
+		"--just-calc \t| -c \tEnter \"just-calculator\" mode\n"
+		"--no-examples \t| -e \tDon't show examples\n"
+		"--no-flags \t| -f \tDon't show these flags\n"
+		"--help \t\t| -h \tShow this help\n"
+		"--no-cmp \t| -m \tDon't show program compilation info\n"
+		"--no-color \t| -n \tDon't color the output\n"
+		"--rpn \t\t| -r \tEnter \"RPN\" mode (Reverse Polish Notation)\n");
+	}
+
+	/* Show available commands with colors, if color
+	 * is enabled, and we aren't in just-calc mode */
+	if (!(flags & justcalc) && (flags & usecolor) == usecolor) {
 		printf("\nAvailable commands: %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s (or %s), %s, %s, %s.\n",
 			color_rvid("calc"), color_rvid("clear"), color_rvid("color"), color_rvid("examples"),
 			color_rvid("exit"), color_rvid("flags"), color_rvid("help"),
 			color_rvid("nocolor"), color_rvid("noexamples"), color_rvid("noflags"),
 			color_rvid("operands"), color_rvid("ops"), color_rvid("quit"),
 			color_rvid("rpn"), color_rvid("specvals"));
-	else
-		printf("\n(Just-calculator mode)\nAvailable commands: %s, %s, %s, %s, %s, %s.\n",
-			color_rvid("clear"), color_rvid("exit"), color_rvid("help"), color_rvid("quit"), color_rvid("nocalc"), color_rvid("rpn"));
 
-	/* Show examples */
-	if (showsamp != 0 && justcalc != 1)
+	/* Show available commands without colors, if color
+	 * is disabled, and we aren't in just-calc mode */
+	} else if (!(flags & usecolor) && !(flags & justcalc)) {
+		printf("\nAvailable commands: calc, clear, color, examples, "
+			"exit, flags, help, nocolor, noexamples, noflags, "
+			"operands (or ops), quit, rpn, specvals.\n");
+
+	/* Show reduced command list without colors,
+	 * if we aren't in just-calc mode */
+	} else if ((flags & justcalc) == justcalc) {
+		printf("\n(Just-calculator mode)\nAvailable commands: clear, exit, help, quit, nocalc, rpn.\n");
+	}
+
+	/* Show examples with colors, if color is
+	 * enabled, and we aren't in just-calc mode */
+	if ((flags & (showsamp | usecolor)) == (showsamp | usecolor) && !(flags & justcalc)) {
 		printf("Examples:\n"
 			"%s\n"
 			"1 + 1\t\t1 p 1\t\tAddition\tReturns 2\n"
@@ -520,40 +577,91 @@ color_rvid("--rpn"), color_rvid("-r"));
 			"4 %% 2\t\t4 m 2\t\tModulus\t\tReturns 0\n"
 			"1 < 16\t\t1 l 16\t\tBit-shifting\tReturns 65536\n"
 			"4096 > 1\t4096 r 1\tBit-shifting\tReturns 2048\n",
-color_bu("[Cmd]\t\t[Alt sign]\t[Description]\t[Result]"));
+			color_bu("[Cmd]\t\t[Alt sign]\t[Description]\t[Result]"));
+
+	/* Show examples without colors, if color is 
+	 * disabled, and we aren't in just-calc mode */
+	} else if ((flags & showsamp) != 0 && !(flags & usecolor) && !(flags & justcalc)) {
+		printf("Examples:\n"
+			"[Cmd]\t\t[Alt sign]\t[Description]\t[Result]\n"
+			"1 + 1\t\t1 p 1\t\tAddition\tReturns 2\n"
+			"1 - 1\t\t1 s 1\t\tSubtraction\tReturns 0\n"
+			"2 * 2\t\t2 t 2\t\tMultiplication\tReturns 4\n"
+			"4 / 2\t\t4 d 2\t\tDivision\tReturns 2\n"
+			"4 %% 2\t\t4 m 2\t\tModulus\t\tReturns 0\n"
+			"1 < 16\t\t1 l 16\t\tBit-shifting\tReturns 65536\n"
+			"4096 > 1\t4096 r 1\tBit-shifting\tReturns 2048\n");
+	}
+
 }
 
 /* Print available operands and their short notation */
 void
 printOps(void)
 {
-	printf("Available operands:\n"
-		"%s Can be written as %s\n"
-		"+\t\t\t\tp\n"
-		"-\t\t\t\ts\n"
-		"*\t\t\t\tt\n"
-		"/\t\t\t\td\n"
-		"%%\t\t\t\tm\n"
-		"<\t\t\t\tl\n"
-		">\t\t\t\tr\n",
-color_bu("[Symbol]"), color_bu("[Latin letter]"));
+	/* Show operands with color, if color is
+	 * enabled, and we aren't in just-calc mode */
+	if ((flags & usecolor) != 0 && !(flags & justcalc)) {
+		printf("Available operands:\n"
+			"%s Can be written as %s\n"
+			"+\t\t\t\tp\n"
+			"-\t\t\t\ts\n"
+			"*\t\t\t\tt\n"
+			"/\t\t\t\td\n"
+			"%%\t\t\t\tm\n"
+			"<\t\t\t\tl\n"
+			">\t\t\t\tr\n",
+			color_bu("[Symbol]"), color_bu("[Latin letter]"));
+
+	/* Show operands without color, if color is
+	 * disabled, and we aren't in just-calc mode */
+	// if usecolor = 0 && justcalc = 0
+	} else if ((flags & (usecolor | justcalc)) == (usecolor | justcalc)) {
+		printf("Available operands:\n"
+			"[Symbol] Can be written as [Latin letter]\n"
+			"+\t\t\t\tp\n"
+			"-\t\t\t\ts\n"
+			"*\t\t\t\tt\n"
+			"/\t\t\t\td\n"
+			"%%\t\t\t\tm\n"
+			"<\t\t\t\tl\n"
+			">\t\t\t\tr\n");
+	}
 }
 
 /* Print special values */
 void
 printSpecVals(void)
 {
-	printf("Special values: you can type these words to automatically get their value.\n"
-		"%s These are case insensitive, so you can type them in all lowercase, uppercase, etc.\n"
-		"%s\t%s\n"
-		"pi\t\tThe value of Pi\n"
-		"pi2\t\tPi / 2\n"
-		"pi4\t\tPi / 4\n"
-		"1pi\t\t1 / Pi\n"
-		"2pi\t\t2 / Pi\n"
-		"pisq\t\tPi * Pi\n"
-		"e\t\tThe value of e\n",
-color_bu("NOTE:"), color_bu("[Symbol]"), color_bu("[Description]"));
+	/* Print special values with color, if color is
+	 * enabled, and we aren't in just-calc mode */
+	if ((flags & usecolor) != 0 && !(flags & justcalc)) {
+		printf("Special values: you can type these words to automatically get their value.\n"
+			"%s These are case insensitive, so you can type them in all lowercase, uppercase, etc.\n"
+			"%s\t%s\n"
+			"pi\t\tThe value of Pi\n"
+			"pi2\t\tPi / 2\n"
+			"pi4\t\tPi / 4\n"
+			"1pi\t\t1 / Pi\n"
+			"2pi\t\t2 / Pi\n"
+			"pisq\t\tPi * Pi\n"
+			"e\t\tThe value of e\n",
+			color_bu("NOTE:"), color_bu("[Symbol]"), color_bu("[Description]"));
+
+	/* Print special values without color, if color is
+	 * disabled, and we aren't in just-calc mode */
+	} else if ((flags & (usecolor | justcalc)) == (usecolor | justcalc)) {
+		printf("Special values: you can type these words to automatically get their value.\n"
+			"NOTE: These are case insensitive, so you can type them in all lowercase, uppercase, etc.\n"
+			"[Symbol]\t[Description]\n"
+			"pi\t\tThe value of Pi\n"
+			"pi2\t\tPi / 2\n"
+			"pi4\t\tPi / 4\n"
+			"1pi\t\t1 / Pi\n"
+			"2pi\t\t2 / Pi\n"
+			"pisq\t\tPi * Pi\n"
+			"e\t\tThe value of e\n");
+	}
 }
 
 /* Handle signals */
@@ -561,16 +669,16 @@ void
 sigHandler(int sigNum)
 {
 	/* Inform user what signal was sent */
-	char *sigName;
+	char sigName[10] = {0};
 
 	/* Check if signal is CTRL+C */
 	if (sigNum == 2)
-		sigName = "(CTRL+C)";
+		strncpy(sigName, "(CTRL+C)", 9);
 	/* Check if signal is CTRL+D */
 	else if (sigNum == 11)
-		sigName = "(CTRL+D)";
+		strncpy(sigName, "(CTRL+D)", 9);
 	else
-		sigName = "";
+		strncpy(sigName, "", 0);
 
 	/* Print detected signal and exit gracefully */
 	fprintf(stderr, "[Detected Signal %d %s]\n", sigNum, sigName);
