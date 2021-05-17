@@ -8,6 +8,10 @@
  *
  */
 
+#define _GNU_SOURCE
+#define _FORTIFY_SOURCE 2
+#define _POSIX_C_SOURCE 200809L
+
 #include <math.h>
 #include <signal.h>
 #include <stdio.h>
@@ -23,15 +27,9 @@
 #include "compiler.h"
 #include "rpn.c"
 
-/* Perform stricter security checks */
-#define _FORTIFY_SOURCE 2
-
-/* Use POSIX.1-2008 */
-#define _POSIX_C_SOURCE 200809L
-
 /* Calc version */
-#define __CALC_VERSION_MAJOR "1"
-#define __CALC_VERSION_MINOR "9"
+#define __CALC_VERSION_MAJOR "2"
+#define __CALC_VERSION_MINOR "0"
 #define __CALC_VERSION __CALC_VERSION_MAJOR "." __CALC_VERSION_MINOR
 
 /* Magic number that lets us check if the operator number is valid */
