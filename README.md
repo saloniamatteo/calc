@@ -6,7 +6,7 @@ Initially written on January 25, 2021.
 Current version can be found in `calc.c`,
 or by running `make version` (see [Installation](#Installation))
 
-If you plan to work on `quiz`, be sure to read `INDENTATION`.
+If you plan to work on `calc`, be sure to read `INDENTATION`.
 
 Support this project: https://saloniamatteo.top/donate.html
 
@@ -219,46 +219,6 @@ make install
 ```
 
 If, for some reason, you cannot run the commands above, run `autoreconf --install`, then retry.
-
-## Statically linking & building
-If you want to statically link `calc` to share it, make sure you have `musl`, `musl-gcc` (not required on Android), and a copy of the source code of `libreadline` and `libncurses` (needed by `libreadline`).
-
-Next, run the following:
-
-```bash
-# Getting Sources
-# If you haven't cloned this repository yet
-git clone https://github.com/saloniamatteo/calc; cd calc
-mkdir -p libs/{readline,ncurses}
-cd libs
-# Get a copy of libreadline and libncurses' source code
-git clone https://git.savannah.gnu.org/git/readline.git readline-src
-git clone https://github.com/mirror/ncurses ncurses-src
-
-# Compiling Sources
-cd readline-src
-# If compiling on Android, run the following command:
-#./configure --prefix=$(pwd)/../readline CC=clang && make -kj$(nproc) && make install-static
-./configure --prefix=$(pwd)/../readline CC=musl-gcc && make -kj$(nproc) && make install-static
-cd ../ncurses-src
-# If compiling on Android, run the following command:
-#./configure --prefix=$(pwd)/../ncurses CC=clang && make -kj$(nproc) && make install
-./configure --prefix=$(pwd)/../ncurses CC=musl-gcc && make -kj$(nproc) && make install
-
-# Finally, Statically link & compile calc
-cd ../..
-make static-deb
-```
-
-It should compile succesfully; When compiling `static-deb` with `make`, the output should look like this:
-
-```bash
-[STATIC DEBUG]
-gcc: warning: ./libs/readline/lib/libreadline.a: linker input file unused because linking not done
-gcc: warning: ./libs/ncurses/lib/libncurses.a: linker input file unused because linking not done
-CC calc.c
-CC calc-debstatic.o
-```
 
 ## Why was this written?
 This was written because I was tired of using the slow Python as a command-line calculator.
