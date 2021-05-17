@@ -29,7 +29,6 @@ bin_PROGRAMS = calc
 
 # Source code location
 calc_SOURCES = src/calc.c
-calc_LDFLAGS = -lm
 
 # Data installation directory
 docdir = @docdir@
