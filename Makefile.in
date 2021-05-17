@@ -108,8 +108,6 @@ am__dirstamp = $(am__leading_dot)dirstamp
 am_calc_OBJECTS = src/calc.$(OBJEXT)
 calc_OBJECTS = $(am_calc_OBJECTS)
 calc_LDADD = $(LDADD)
-calc_LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(calc_LDFLAGS) $(LDFLAGS) \
-	-o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -330,7 +328,6 @@ AM_LDFLAGS = -lm -lreadline
 
 # Source code location
 calc_SOURCES = src/calc.c
-calc_LDFLAGS = -lm
 
 # Various Documentation & Data files
 doc_DATA = README.md
@@ -423,7 +420,7 @@ src/calc.$(OBJEXT): src/$(am__dirstamp) src/$(DEPDIR)/$(am__dirstamp)
 
 calc$(EXEEXT): $(calc_OBJECTS) $(calc_DEPENDENCIES) $(EXTRA_calc_DEPENDENCIES) 
 	@rm -f calc$(EXEEXT)
-	$(AM_V_CCLD)$(calc_LINK) $(calc_OBJECTS) $(calc_LDADD) $(LIBS)
+	$(AM_V_CCLD)$(LINK) $(calc_OBJECTS) $(calc_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
