@@ -1,5 +1,6 @@
+autom4te.cache
+aclocal.m4
 calc
-*.o
-libs
-cscope.*
-tags
+config.log
+config.status
+Makefile
