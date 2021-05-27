@@ -3,14 +3,14 @@
 
 AC_PREREQ([2.69])
 
-AC_INIT([calc], [2.0], [saloniamatteo@pm.me])
+AC_INIT([calc], [2.1], [saloniamatteo@pm.me])
 AC_CONFIG_SRCDIR([src])
 
 # Checks for programs.
 AC_PROG_CC
 
 # Checks for header files.
-AC_CHECK_HEADERS([getopt.h math.h readline/readline.h signal.h stdio.h stdlib.h string.h strings.h])
+AC_CHECK_HEADERS([getopt.h math.h signal.h stdint.h stdio.h stdlib.h string.h strings.h readline/readline.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_CHECK_HEADER_STDBOOL

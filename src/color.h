@@ -19,26 +19,31 @@
 #define _SMCLIB_COLOR_H
 
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+/* Function prototypes */
+static int _free_color(void);
+static char *color(char *, uint32_t, ...);
 
 /* This enum contains escape sequence values */
 enum fontEffects {
 	/* Generic font effects */
 	/* NWS = Not Widely Supported */
-	reset = 0,	/* Set to normal colors */
-	bold = 1,	/* Make text bold */
-	faint = 2,	/* Slightly decrease text brightness */
-	italic = 3,	/* Make text italic */
-	underline = 4,	/* Underline the text */
-	sblink = 5,	/* Slow blink */
-	fblink = 6,	/* Fast blink */
-	rvideo = 7,	/* Reverse video, swap fg and bg colors */
-	crossed = 9,	/* Crossed out, marked for deletion */
-	framed = 51,	/* (NWS) Enclose text in a frame */
-	circled = 52,	/* (NWS) Enclose text in a circle */
-	overlined = 53,	/* (NWS) Overline text */
+	reset = 0,		/* Set to normal colors */
+	bold = 1,		/* Make text bold */
+	faint = 2,		/* Slightly decrease text brightness */
+	italic = 3,		/* Make text italic */
+	underline = 4,		/* Underline the text */
+	sblink = 5,		/* Slow blink */
+	fblink = 6,		/* Fast blink */
+	rvideo = 7,		/* Reverse video, swap fg and bg colors */
+	crossed = 9,		/* Crossed out, marked for deletion */
+	framed = 51,		/* (NWS) Enclose text in a frame */
+	circled = 52,		/* (NWS) Enclose text in a circle */
+	overlined = 53,		/* (NWS) Overline text */
 
 	/* Foregrounds */
 	/* NOTE: those starting with "b" are bright colors */
@@ -85,7 +90,7 @@ static char *coloredStr = NULL;
 static int
 _free_color(void)
 {
-	coloredStr = (char *) realloc(coloredStr, 1);
+	coloredStr = (char *)realloc(coloredStr, 1);
 	memset(coloredStr, 0, 1);
 	free(coloredStr);
 
@@ -99,7 +104,7 @@ _free_color(void)
 
 /* This function colors a text string using ASCII escape sequences; it returns a colored string */
 static char *
-color(char *string, int colorCount, ...)
+color(char *string, uint32_t colorCount, ...)
 {
 	/* Make sure color count is not less than 1 */
 	if (colorCount <= 0) {
@@ -121,12 +126,13 @@ color(char *string, int colorCount, ...)
 
 	/* Check if size to allocate isn't smaller than the string + colorCount */
 	if (malloc_size <= (strlen(string) + colorCount)) {
-		fprintf(stderr, "Size to allocate is too small! Size: %ld\n", malloc_size);
+		fprintf(stderr, "Size to allocate is too small! Size: %ld\n",
+			malloc_size);
 		exit(2);
 	}
 
 	/* Dynamically allocate variable */
-	coloredStr = (char*) calloc(1, malloc_size);
+	coloredStr = (char *)calloc(1, malloc_size);
 
 	/* Check if pointer is null */
 	if (coloredStr == NULL) {
@@ -142,10 +148,11 @@ color(char *string, int colorCount, ...)
 	strcpy(coloredStr, tmp);
 
 	/* Append every color to coloredStr, prepending "\e[";
-	The colored string will look like this:
-	\e[COLOR1;COLOR2..mSTRING\e[RESETm" */
-	for (int i = 0; i < colorCount; i++) {
+	   The colored string will look like this:
+	   \e[COLOR1;COLOR2..mSTRING\e[RESETm" */
+	for (uint32_t i = 0; i < colorCount; i++) {
 		sprintf(tmp, "%d", va_arg(argl, int));
+
 		/* Append ";" to concatenate colors */
 		if (i < (colorCount - 1))
 			strcat(tmp, ";");
@@ -162,13 +169,9 @@ color(char *string, int colorCount, ...)
 	va_end(argl);
 
 	/* Put the wanted string in tmp, resetting the color, copying it in coloredStr
-	string will look like this: \e[COLOR1;COLOR2m..STRING\e[RESETm */
+	   string will look like this: \e[COLOR1;COLOR2m..STRING\e[RESETm */
 	sprintf(tmp, "%s\e[%dm", string, reset);
 	strcat(coloredStr, tmp);
-
-	/* FIXME: not freeing "coloredStr" causes a memory leak,
-	and freeing it before returning it returns random values from memory */
-	//free(coloredStr);
 
 	/* Clear temporary variable */
 	memset(&tmp, 0, sizeof(tmp));
@@ -177,5 +180,4 @@ color(char *string, int colorCount, ...)
 	return coloredStr;
 }
 
-#endif /* _SMCLIB_COLOR_H */
-
+#endif				/* _SMCLIB_COLOR_H */

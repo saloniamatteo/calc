@@ -22,12 +22,12 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#define BUFSIZE 100	/* size of buffer for getch/ungetch */
-#define MAXVAL 100	/* maximum depth of val stack */
-#define MAXOP 100	/* max size of operand or operator */
-#define NUMBER '0'	/* signal that a number was found */
+#define BUFSIZE 100		/* size of buffer for getch/ungetch */
+#define MAXVAL 100		/* maximum depth of val stack */
+#define MAXOP 100		/* max size of operand or operator */
+#define NUMBER '0'		/* signal that a number was found */
 
-#define rpnErr(err) fprintf(stderr, "RPN: %s", err);
+#define rpnErr(err) fprintf(stderr, "RPN: %s", err)
 
 /* Global variables */
 static char buf[BUFSIZE];	/* buffer for ungetch */
@@ -38,9 +38,10 @@ static double val[MAXVAL];	/* value stack */
 /* Function prototypes */
 static int getch(void);
 static void ungetch(int);
-static int getop(char []);
+static int getop(char *);
 static void push(double);
 static double pop(void);
+int rpnInit(void);
 
 /* Function declarations */
 /* getch: get a (possibly pushed back) character */
@@ -63,12 +64,11 @@ ungetch(int c)
 
 /* getop: get next operator or numeric operand */
 static int
-getop(char s[])
+getop(char *s)
 {
 	int i, c;
 
-	while ((s[0] = c = getch()) == ' ' || c == '\t')
-		;
+	while ((s[0] = c = getch()) == ' ' || c == '\t') ;
 	s[1] = '\0';
 
 	if (!isdigit(c) && c != '.')
@@ -76,12 +76,10 @@ getop(char s[])
 	i = 0;
 
 	if (isdigit(c))		/* collect integer part */
-		while (isdigit(s[++i] = c = getch()))
-				;
+		while (isdigit(s[++i] = c = getch())) ;
 
 	if (c == '.')		/* collect fraction part */
-		while (isdigit(s[++i] = c = getch()))	
-			;
+		while (isdigit(s[++i] = c = getch())) ;
 	s[i] = '\0';
 
 	if (c != EOF)
@@ -121,7 +119,7 @@ rpnInit(void)
 	char s[MAXOP];
 
 	while ((type = getop(s)) != EOF) {
-		switch(type) {
+		switch (type) {
 		case NUMBER:
 			push(atof(s));
 			break;
